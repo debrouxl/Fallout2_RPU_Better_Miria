@@ -677,7 +677,7 @@ procedure Node033 begin
    prev_node := 33;
 end
 procedure Node034 begin
-   up_sex_status_amt(10);
+   up_sex_status_amt(10)
    Reply(575 + dude_is_female);
    NOption(577, Node999, 001);
    prev_node := 34;

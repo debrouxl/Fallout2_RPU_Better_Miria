@@ -735,16 +735,16 @@
 #
 # target hit in groin
 #
-{1590}{}{I have too many young already.}
+{1590}{}{I already have too many kids anyway.}
 {1591}{}{You fight without honor.}
-{1592}{}{I'm married, didn't use it anyway.}
+{1592}{}{I don't need that anyway, I'm married.}
 {1593}{}{Holy spirits, the world just exploded.}
-{1594}{}{Gasp... can't breath....}
+{1594}{}{Gasp... can't breathe...}
 {1595}{}{In high, squeaky, voice--Ouch!}
 {1596}{}{Unnhhh. I need to sit down for a bit.}
-{1597}{}{You bastard--I kill you slow for that.}
+{1597}{}{You bastard--I'll kill you slow for that.}
 {1598}{}{You know nothing of honor.}
-{1599}{}{I butcher you like animal for that.}
+{1599}{}{I'll butcher you like an animal for that.}
 #
 #
 ############################################
@@ -4820,6 +4820,145 @@
 {42175}{}{Can't we talk about this?}
 {42176}{}{Ha! You missed, dipshit!}
 {42177}{}{Zoiks!}
+{42800}{}{No, not my face!}
+{42801}{}{Please, anywhere but my face!}
+{42802}{}{Oh my God, I need a mirror NOW!}
+{42803}{}{There goes that modeling career I dreamed about.}
+{42804}{}{I feel dizzy, baby.}
+{42805}{}{WHAT? SPEAK UP, MY EARS ARE RINGING}
+{42806}{}{Fuck! I think I lost a tooth!}
+{42807}{}{Jesus, I've got a helluva headache.}
+{42808}{}{Don't fuck with the pretty face, jackass.}
+{42809}{}{If my nose is crooked now, your ass is grass.}
+{42810}{}{I don't think my elbow is supposed to bend that way}
+{42811}{}{OK, I just won't be wearing any halter tops for a while.}
+{42812}{}{You hit my arm, bitch!}
+{42813}{}{Baby, I think you're gonna hafta make dinner tonight.}
+{42814}{}{Leave my hand alone! I just got my nails done!}
+{42815}{}{OWW! The fucker got my arm!}
+{42816}{}{Aieeee! I can't feel my left arm!}
+{42817}{}{Damn...left arm...feels like it's on fire...}
+{42820}{}{I don't think my elbow is supposed to bend that way.}
+{42821}{}{OK, I just won't be wearing any halter tops for a while.}
+{42822}{}{You hit my arm, bitch!}
+{42823}{}{Baby, I think you're gonna hafta make dinner tonight.}
+{42824}{}{Leave my hand alone! I just got my nails done!}
+{42825}{}{Aieeee! I can't feel my right arm!}
+{42826}{}{*Damn...right arm...feels like it's on fire...}
+{42827}{}{OWW! The fucker got my arm!}
+{42830}{}{Good thing I've got extra padding there}
+{42831}{}{AARRGG! You got my boob!}
+{42832}{}{*gasp* Can't breathe *gasp*}
+{42833}{}{You pop my tit and I'll pop your head, asshole!}
+{42834}{}{I heard of breast reduction surgery, but this is crazy}
+{42835}{}{Baby, they're fucking with my funbags!}
+{42836}{}{Oh my God, my nipples are bleeding!}
+{42837}{}{*Unfff* Knocked...the...wind...outta...me...}
+{42838}{}{Dammit, I think you broke my rib!}
+{42839}{}{I think I just heard my spine crack.}
+{42840}{}{Oh shit, are those my guts?}
+{42841}{}{OH GOD NO! THEY GUTTED ME!}
+{42842}{}{Gimme a sec to get my wind back.}
+{42843}{}{What the hell is this gaping hole in my chest?}
+{42844}{}{[Grabs gut and doubles over]}
+{42845}{}{Stop it! My boobs are really sensitive!}
+{42846}{}{[Looks on ground] Where the hell did my nipple go?}
+{42847}{}{Guess I don't need to bother with that diet now.}
+{42848}{}{AAAAHHHH! My boob got shredded!}
+{42849}{}{Good thing I put those metal plates in my bra.}
+{42850}{}{Great, now I've got two belly buttons.}
+{42851}{}{Good thing I'm wearing a bra. It's all that's holding my tits on right now.}
+{42852}{}{HELP ME BABY! My guts are spilling out over here!}
+{42860}{}{Well, guess I better not wear shorts for a while.}
+{42861}{}{Great! A big fucking bruise on my leg! Thanks!}
+{42862}{}{Oh shit, I can't walk, baby!}
+{42863}{}{Honey, you're gonna have to carry me outta here.}
+{42864}{}{Godammit, my legs bruise too easy!}
+{42865}{}{Now I got a rip in my stockings. Thanks, jackass.}
+{42866}{}{I hope I still have that long skirt in my bag.}
+{42870}{}{Well, guess I better not wear shorts for a while.}
+{42871}{}{Great! A big fucking bruise on my leg! Thanks!}
+{42872}{}{Fuck! I can't move my leg!}
+{42873}{}{Sweetie, you're gonna hafta carry me outta here.}
+{42874}{}{Godammit, now I'm gonna look like hell in lingerie!}
+{42875}{}{Now I got a rip in my stockings. Thanks, jackass.}
+{42876}{}{I hope I still have that long skirt in my bag.}
+{42880}{}{I can't see! Baby help me!}
+{42881}{}{Guess I better wear some shades for a while.}
+{42882}{}{You just gave me a fucking black eye, dickhead!}
+{42883}{}{Oh hell, where did everybody go?}
+{42884}{}{Baby, my eyes! Help me!}
+{42885}{}{Honey where are you! I can't see you!}
+{42890}{}{Nobody fucks with my cooch unless I tell 'em to!}
+{42891}{}{Sweetie, help! They're after my pussy!}
+{42892}{}{You hurt my lovebox and my sweetie will kill you. And your family. We'll hunt them down.}
+{42893}{}{NO! PLEASE! I want to have babies someday!}
+{42894}{}{Uhmmff, no nookie for me tonight.}
+{42895}{}{My ass! They got me in the ass!}
+{42896}{}{Holy shit, that ripped the hair right off my bush!}
+{42897}{}{*sob* How'm I gonna have a baby now? *sob*}
+{42898}{}{Oh shit, my cooch is on fire, oh damn.}
+{42900}{}{We are SO screwed.}
+{42901}{}{We are SO fucked.}
+{42902}{}{Oh crap, they wanna fuck me!}
+{42903}{}{Damn it, why does it have to be this way?}
+{42904}{}{Don't hurt me! Don't hurt me!}
+{42905}{}{Baby help! They're after me!}
+{42906}{}{I think I have an appointment for a manicure. Later.}
+{42907}{}{I gotta go wash my hair. Pick me up after the fight.}
+{42908}{}{I'm gonna have bad dreams about this later, I just know it}
+{42909}{}{Honey, I'm scared! Help!}
+{42910}{}{I want my daddy!}
+{42911}{}{If you let me go, I'll give you a handjob.}
+{42912}{}{Please let me go! I'll go down on you if you let me go!}
+{42913}{}{I shoulda stayed on the farm!}
+{42914}{}{Baby, this is all your fault! You're the one who HAD to drag me out into the wastelands...}
+{42915}{}{You like my ass? It's yours if you let me go!}
+{42920}{}{Look out jerk, I'm on the rag and you're in my way.}
+{42921}{}{Me and my baby are gonna mess you up.}
+{42922}{}{You better run now while you still can.}
+{42923}{}{Hey, is that--JEWELRY? GIMME!}
+{42924}{}{Watch me do this asshole, honey.}
+{42925}{}{Wanna dance, fool?}
+{42926}{}{I am woman. Hear me ROAR!}
+{42927}{}{Let's get this shit over with so we can hit the booze.}
+{42928}{}{Hey snapperhead, over here!}
+{42929}{}{My sweetie is gonna kick your ass.}
+{42930}{}{Check out these moves, sweetie.}
+{42931}{}{Oh am I so gonna open a can o' whupass on you!}
+{42932}{}{Let's get these assholes!}
+{42940}{}{Any questions?}
+{42941}{}{Feel good, fuckface?}
+{42942}{}{Some people would pay to have a beautiful woman whip their ass, you know.}
+{42943}{}{I hope I looked cool doing that.}
+{42944}{}{That's what you get for pissing me off.}
+{42945}{}{And when we're done I'm gonna piss on your corpse too.}
+{42946}{}{Take that you dumb fuck.}
+{42947}{}{Yahoo, I'm on a roll, baby!}
+{42948}{}{Buy me a beer for that one, sweetie.}
+{42949}{}{Honey, I did it! I did it!}
+{42950}{}{Never fuck with a farmer's daughter.}
+{42951}{}{Did that hurt? Good.}
+{42952}{}{I'm so glad my baby taught me fight.}
+{42953}{}{And now, you pay.}
+{42954}{}{Thaaaaat's gonna leave a mark.}
+{42955}{}{Let that be a lesson to you, bitch.}
+{42956}{}{Fuck me? Fuck you!}
+{42957}{}{I am SO kicking your ass!}
+{42960}{}{*hah* As if.}
+{42961}{}{Dumb ass}
+{42962}{}{That was close.}
+{42963}{}{Looo-serrr}
+{42964}{}{You want me to stand still next time?}
+{42965}{}{I'd laugh if I wasn't too busy kicking your ass.}
+{42966}{}{Woah, they almost got me there, honey.}
+{42967}{}{Fucking loser}
+{42968}{}{Back home we call that the Modoc Shuffle.}
+{42969}{}{That's not the kind of attention I'm looking for.}
+{42970}{}{Dipshit}
+{42971}{}{Maybe you could hit me if you'd stop staring at my tits.}
+{42972}{}{Hey! Are you trying to kill me?! Cut it out!}
+{42973}{}{I'm over here, shithead!}
 #
 ############################################
 # 44000 Robobrain (Idiot/Chimp)

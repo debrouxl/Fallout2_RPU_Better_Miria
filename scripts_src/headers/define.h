@@ -734,7 +734,7 @@
 // End
 
 #define METARULE3_ART_SET_BASE_FID_NUM      (107)
-#define art_change_fid_num(WHO, NUM)           metarule3(METARULE3_ART_SET_BASE_FID_NUM,WHO,NUM,0)
+#define art_change_fid_num(WHO, NUM)         metarule3(METARULE3_ART_SET_BASE_FID_NUM,WHO,NUM,0)
 
 #define METARULE3_TILE_SET_CENTER           (108)
 #define tile_set_center(tileNum)             metarule3(METARULE3_TILE_SET_CENTER,tileNum,0,0)

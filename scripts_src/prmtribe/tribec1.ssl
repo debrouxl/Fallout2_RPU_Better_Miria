@@ -546,7 +546,7 @@ procedure Node009 begin
 end
 
 procedure Node010 begin
-   up_sex_status;
+   up_sex_status
    game_time_advance(2*ONE_GAME_HOUR);
 
    Reply(310);

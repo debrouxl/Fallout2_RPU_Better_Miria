@@ -122,9 +122,9 @@ procedure talk_p_proc begin
 
    if (playerSoldSex) then begin
       playerSoldSex := 0;
-      if (dude_spouse_is_female) then
+      if (dude_spouse_is_female and Miria_In_Party) then
          poison(Miria_Ptr, 30);
-      else if (dude_spouse_is_male) then
+      else if (dude_spouse_is_male and Davin_In_Party) then
          poison(Davin_Ptr, 30);
       else
          poison(dude_obj, 30);
@@ -273,17 +273,17 @@ end
 procedure Node006a begin
    fadeout(1);
    playerSoldSex := 1;
-   if ( (dude_spouse_is_female) or (dude_spouse_is_male) ) then
+   if (Miria_In_Party or Davin_In_Party) then
       ndebug("you are married.");
    else
-      up_sex_status;
+      up_sex_status
    call Node999;
 end
 
 procedure Node005 begin
-   if (dude_spouse_is_female) then
+   if (dude_spouse_is_female and Miria_In_Party) then
       Reply(118);
-   else if (dude_spouse_is_male) then
+   else if (dude_spouse_is_male and Davin_In_Party) then
       Reply(119);
    else
       Reply(120);
@@ -298,9 +298,9 @@ procedure Node006 begin
 
    set_local_var(LVAR_Leave, 1);
 
-   if (dude_spouse_is_female) then
+   if (dude_spouse_is_female and Miria_In_Party) then
       display_msg(mstr(123));
-   else if (dude_spouse_is_male) then
+   else if (dude_spouse_is_male and Davin_In_Party) then
       display_msg(mstr(124));
    else
       display_msg(mstr(125));

@@ -98,6 +98,16 @@ procedure Node995;
 #define LVAR_FOLLOW_DISTANCE              (10)
 #define LVAR_Home_Tile                    (13)
 #define LVAR_Gave_Weapon                  (14)
+#define LVAR_DID2100                      (15)
+#define LVAR_DID2600                      (16)
+#define LVAR_TALLY                        (17)
+#define LVAR_TALLY_TIMER                  (18)
+#define LVAR_HAVESEX                      (19)
+#define LVAR_ASK1TIME                     (20)
+#define LVAR_ASK2TIME                     (21)
+#define LVAR_ASK3TIME                     (22)
+#define LVAR_SEXTIME                      (23)
+#define LVAR_CITY_WANTS                   (24)
 
 #define insult_none                       (0)
 #define insult_light                      (1)
@@ -112,6 +122,15 @@ procedure Node995;
 
 #define PARTY_NODE_X                      Node100
 
+#define miria_party_member_options    \
+           party_member_options_abusive(-500, NOption(10000,Node2000,004), def_heal_msg, 9210, 9211, def_follow_msg, 1020, 1020, def_gear_msg, 9220, 9221, def_wait_msg, 9230, 9231, def_nowait_msg, random(9200, 9201), random(9200, 9201), def_end_msg, random(9240, 9241), random(9241, 9242), def_stupid_msg, random(300, 303))
+#define miria_party_member_options_no_additional_option    \
+           party_member_options_abusive(-500, true, def_heal_msg, 9210, 9211, def_follow_msg, 1020, 1020, def_gear_msg, 9220, 9221, def_wait_msg, 9230, 9231, def_nowait_msg, random(9200, 9201), random(9200, 9201), def_end_msg, random(9240, 9241), random(9241, 9242), def_stupid_msg, random(300, 303))
+#define miria_party_follow_options    \
+           party_follow_options(g_mstr(10004), mstr(1005), mstr(1006), g_mstr(10010))
+#define miria_party_gear_options      \
+           party_gear_options_abusive(-500, def_weapon_use_msg, def_unarm_msg, 9250, 9251, def_armor_msg, 9260, 9261, def_ignore_gear_msg)
+
 // Begin Seraph's Code
 variable biff;
 variable gun;
@@ -119,13 +138,30 @@ variable gun;
 variable did_node_11;
 variable did_node_12;
 variable did_node_14;
+variable Perform_Critter_Float;
 import variable modoc_jo_obj;
+
+procedure Node2000;
+procedure Node2100;
+procedure Node2200;
+procedure Node2300;
+procedure Node2400;
+procedure Node2500;
+procedure Node2501;
+procedure Node2502;
+procedure Node2503;
+procedure Node2504;
+procedure Node2600;
+procedure use_obj_on_p_proc;
+procedure location_floats;
 
 procedure start begin
 end
 
 procedure push_p_proc begin
-   if (Miria_In_Party == false) then begin
+   if (Miria_In_Party) then
+      floater(random(5100, 5103));
+   else begin
       script_overrides;
    end
 end
@@ -149,51 +185,102 @@ procedure combat_p_proc begin
 end
 
 procedure timed_event_p_proc begin
-   //added by killap
-   if (fixed_param == 900) then begin
-      if (self_visible) then begin
+   if (fixed_param == 1) then begin
+      if (not(combat_is_initialized) and has_trait(1, self_obj, 666)) then begin
          if (Miria_In_Party) then begin
             if (Is_Crippled(self_obj)) then
-               floater(2000);
-            else if (self_rads) then
-               floater(2001);
-            else if (get_poison(self_obj)) then
-               floater(2002);
+               floater(random(5004, 5005));
+            else begin
+               if (self_rads) then
+                  floater(random(5000, 5001));
+               else begin
+                  if (get_poison(self_obj)) then
+                     floater(random(5002, 5003));
+                  else begin
+                     if (self_cur_hits <= (self_max_hits * 3 / 4)) then
+                        floater(random(5006, 5007));
+                     else begin
+                        if (dude_is_female) then
+                           floater(random(5500, 5521));
+                        else
+                           floater(random(5507, 5528));
+                     end
+                  end
+               end
+            end
          end
       end
-      add_timer_event(self_obj, random(25, 40), 900);
-   //end added by killap
-   end else if (fixed_param == param_clear_float) then begin
-      float_msg(self_obj, " ", FLOAT_COLOR_NORMAL);
-      float_msg(dude_obj, " ", FLOAT_COLOR_NORMAL);
-      float_msg_clear(self_obj);
-      float_msg_clear(dude_obj);
+      rm_timer_event(self_obj);
+      add_timer_event(self_obj, game_ticks(random(40, 50)), 1);
+   end else begin
+      if (fixed_param == param_clear_float) then begin
+         float_msg(self_obj, " ", FLOAT_COLOR_NORMAL);
+         float_msg(dude_obj, " ", FLOAT_COLOR_NORMAL);
+         float_msg_clear(self_obj);
+         float_msg_clear(dude_obj);
+      end
    end
 end
 
 procedure map_update_p_proc begin
+   if ((dude_spouse_is_female) and (global_var(GVAR_PLAYER_WAS_MARRIED) != 1)) then begin
+      if (local_var(LVAR_TALLY_TIMER) < game_time) then begin
+         if (game_time < local_var(LVAR_ASK1TIME)) then
+            inc_local_var(LVAR_TALLY);
+         if (game_time < local_var(LVAR_ASK2TIME)) then
+            inc_local_var(LVAR_TALLY);
+         if (game_time < local_var(LVAR_ASK3TIME)) then
+            inc_local_var(LVAR_TALLY);
+         if (game_time < local_var(LVAR_SEXTIME)) then
+            inc_local_var(LVAR_TALLY);
+         if ((game_time < local_var(LVAR_ASK1TIME)) and (game_time < local_var(LVAR_ASK2TIME)) and (game_time < local_var(LVAR_ASK3TIME)) and (game_time < local_var(LVAR_SEXTIME))) then
+            inc_local_var(LVAR_TALLY);
+         if ((game_time > local_var(LVAR_ASK1TIME)) and (game_time > local_var(LVAR_ASK2TIME)) and (game_time > local_var(LVAR_ASK3TIME)) and (game_time > local_var(LVAR_SEXTIME))) then
+            dec_local_var(LVAR_TALLY);
+         if ((global_var(GVAR_BUFF_OUT_ADDICT) > 0) or (global_var(GVAR_MENTATS_ADDICT) > 0) or (global_var(GVAR_PSYCHO_ADDICT) > 0) or (global_var(GVAR_RADAWAY_ADDICT) > 0) or (global_var(GVAR_ADDICT_JET) != 0) or (global_var(GVAR_ALCOHOL_ADDICT) > 0) or (global_var(GVAR_ADDICT_TRAGIC) > 0)) then
+            dec_local_var(LVAR_TALLY);
+         if (global_var(GVAR_NEW_RENO_MADE_MAN) > 0) then
+            dec_local_var(LVAR_TALLY);
+         if (global_var(GVAR_REPUTATION_SLAVER) > 0) then
+            dec_local_var(LVAR_TALLY);
+         if (global_var(GVAR_PLAYER_REPUTATION) < -500) then
+            dec_local_var(LVAR_TALLY);
+         if (local_var(LVAR_TALLY) < 0) then
+            set_local_var(LVAR_TALLY, 0);
+         if (local_var(LVAR_TALLY) > 30) then
+            set_local_var(LVAR_TALLY, 30);
+         set_local_var(LVAR_TALLY_TIMER, game_time + 2 * ONE_GAME_MONTH);
+         debug_msg("updated Miria planning timer");
+      end
+   end
    if (combat_is_initialized == false) then begin
       if (anim_busy(self_obj) == false) then begin
-         if (party_member_obj(self_pid) != 0) then begin
+         if (obj_in_party(self_obj)) then begin
             if (chem_use_level(self_obj) == 1) then begin
                if ((100 * self_cur_hits / self_max_hits) <= 60) then begin
                   global_temp := 1;
                   obj_heal_no_skill(self_obj)
                end
-            end else if (chem_use_level(self_obj) == 2) then begin
-               if ((100 * self_cur_hits / self_max_hits) <= 30) then begin
-                  global_temp := 1;
-                  obj_heal_no_skill(self_obj)
-               end
-            end else if (chem_use_level(self_obj) == 3) then begin
-               if ((100 * self_cur_hits / self_max_hits) <= 50) then begin
-                  global_temp := 1;
-                  obj_heal_no_skill(self_obj)
-               end
-            end else if (chem_use_level(self_obj) == 4) then begin
-               if ((100 * self_cur_hits / self_max_hits) <= 50) then begin
-                  global_temp := 1;
-                  obj_heal_no_skill(self_obj)
+            end else begin
+               if (chem_use_level(self_obj) == 2) then begin
+                  if ((100 * self_cur_hits / self_max_hits) <= 30) then begin
+                     global_temp := 1;
+                     obj_heal_no_skill(self_obj)
+                  end
+               end else begin
+                  if (chem_use_level(self_obj) == 3) then begin
+                     if ((100 * self_cur_hits / self_max_hits) <= 50) then begin
+                        global_temp := 1;
+                        obj_heal_no_skill(self_obj)
+                     end
+                  end else begin
+                     if (chem_use_level(self_obj) == 4) then begin
+                        if ((100 * self_cur_hits / self_max_hits) <= 50) then begin
+                           global_temp := 1;
+                           obj_heal_no_skill(self_obj)
+                        end
+                     end
+                  end
                end
             end
          end
@@ -203,94 +290,128 @@ end
 
 procedure map_enter_p_proc begin
    party_member_map_enter;
-//   if (local_var(LVAR_Home_Tile) == 0) then begin   -comment out by killap
-//      set_local_var(LVAR_Home_Tile, self_tile);  -comment out by killap
+   if (dude_spouse_is_female) then begin
+      if (Miria_In_Party) then begin
+         Perform_Critter_Float := 1;
+         rm_timer_event(self_obj);
+         add_timer_event(self_obj, game_ticks(random(40, 50)), 1);
+      end else begin
+         Perform_Critter_Float := 0;
+      end
+   end
    set_self_team(TEAM_MODOC);
-   /*end else */  //  -comment out by killap
-   //if (Miria_In_Party == false) then begin
-   if not(married_to_miria) then begin // edit by killap - party check doesn't always work when map loads
+   if (Miria_In_Party == false) then begin
       if (cur_map_index == MAP_MODOC_MAINSTREET) then begin
          if (map_first_run) then
-            set_local_var(LVAR_Home_Tile, self_tile); //added by killap - moved from above
+            set_local_var(LVAR_Home_Tile, self_tile);
          critter_attempt_placement(self_obj, local_var(LVAR_Home_Tile), dude_elevation);
       end
    end
-
-   //added by killap
-   add_timer_event(self_obj, random(25, 40), 900);
 end
 
 procedure critter_p_proc begin
+   variable LVar0 := 0;
+   if ((cur_map_index == MAP_NEW_RENO_1) and (map_var(2) == party_member_obj(PID_MIRIA))) then begin
+      LVar0 := get_strength(self_obj);
+      if (LVar0 == get_strength(self_obj)) then begin
+         use_obj_on_obj(create_object(PID_KITTY_SEX_DRUG_STRENGTH, 0, 0), self_obj);
+      end
+      if ((get_strength(self_obj) == (LVar0 + 1)) or (get_strength(self_obj) == 10)) then begin
+         set_map_var(2, 0);
+         LVar0 := 0;
+      end
+   end
+   if (Perform_Critter_Float == 1) then begin
+      Perform_Critter_Float := 0;
+      call location_floats();
+   end
    if (Miria_In_Party) then begin
       if (dude_enemy_modoc == false) then begin
          party_member_follow_dude
       end else begin
          set_self_abandon_party;
       end
-   end else if (is_staging_wedding) then begin
-      if (get_sub_stage == wedding_stage_place_important) then begin
-         place_in_church_seat(self_obj, church_miria_seat);
-      end else if (is_staging_miria_wedding) then begin
-         if (get_sub_stage == wedding_stage_done) then begin
-            if (Miria_In_Party == false) then begin
-               party_add_self;
-               set_dude_married;
-               give_pid_qty(self_obj, PID_STIMPAK, 4)
-               give_pid_qty(self_obj, PID_ANTIDOTE, 2)
-            end
-         end else if (stage_time_ready) then begin
-            if (get_sub_stage == wedding_stage_what_response) then begin
-               floater_afraid(400 + (20*grisham_dead)); // Seraph's Fix: added (20*grisham_dead)
-               dude_floater(401);
-               set_next_stage_time(quick_stage_time)
-               set_sub_stage(wedding_stage_grisham_response)
-            end else if (get_sub_stage == wedding_stage_question_response) then begin
-               dude_floater(410);
-               set_next_stage_time(quick_stage_time)
-               set_sub_stage(wedding_stage_question_response_2)
-            end else if (get_sub_stage == wedding_stage_continue) then begin
-               dude_floater(411);
-               set_next_stage_time(quick_stage_time)
-               set_sub_stage(wedding_stage_jo_bride_vow)
-            end else if (get_sub_stage == wedding_stage_bride_vow_response) then begin
-               floater_good(402);
-               set_next_stage_time(quick_stage_time)
-               set_sub_stage(wedding_stage_jo_groom_vow)
-            end else if (get_sub_stage == wedding_stage_groom_vow_response) then begin
-               dude_floater(412);
-               set_next_stage_time(quick_stage_time)
-               set_sub_stage(wedding_stage_grisham_response_2)
-            end else if (get_sub_stage == wedding_stage_player_vow_response) then begin
-               dude_floater(413);
-               set_next_stage_time(quick_stage_time)
-               set_sub_stage(wedding_stage_pronounce_married)
-            end
-         end
-      end
-   end else if (is_staging_rape) then begin
-      if (self_can_see_dude) then begin
-//         if (stage_time_ready) then begin  //comment out by killap
-            if (get_sub_stage == rape_stage_help) then begin
-               gfade_in(1);   //added by killap
-               floater_afraid(250 + (10*dude_is_female) + (20*grisham_dead)); // Seraph's Fix: added (20*grisham_dead)
-               set_next_stage_time(quick_stage_time)
-               set_sub_stage(rape_stage_confront)
-            end
-//         end //comment out by killap
-      end
    end else begin
-      if (self_can_see_dude) then begin
-         if ((local_var(LVAR_Hostile) != 0) or (dude_enemy_modoc)) then begin
-
-            self_attack_dude;
+      if (is_staging_wedding) then begin
+         if (get_sub_stage == wedding_stage_place_important) then begin
+            place_in_church_seat(self_obj, church_miria_seat);
+         end else begin
+            if (is_staging_miria_wedding) then begin
+               if (get_sub_stage == wedding_stage_done) then begin
+                  if (Miria_In_Party == false) then begin
+                     party_add_self;
+                     set_dude_married;
+                     give_pid_qty(self_obj, PID_STIMPAK, 4)
+                     give_pid_qty(self_obj, PID_ANTIDOTE, 2)
+                  end
+               end else begin
+                  if (stage_time_ready) then begin
+                     if (get_sub_stage == wedding_stage_what_response) then begin
+                        float_msg(self_obj, mstr(400 + (20 * (grisham_dead))), 8 + ((7 - 8) * has_trait(0, dude_obj, 22)));
+                        dude_floater(401);
+                        set_next_stage_time(quick_stage_time)
+                        set_sub_stage(wedding_stage_grisham_response)
+                     end else begin
+                        if (get_sub_stage == wedding_stage_question_response) then begin
+                           dude_floater(410);
+                           set_next_stage_time(quick_stage_time)
+                           set_sub_stage(wedding_stage_question_response_2)
+                        end else begin
+                           if (get_sub_stage == wedding_stage_continue) then begin
+                              dude_floater(411);
+                              set_next_stage_time(quick_stage_time)
+                              set_sub_stage(wedding_stage_jo_bride_vow)
+                           end else begin
+                              if (get_sub_stage == wedding_stage_bride_vow_response) then begin
+                                 float_msg(self_obj, mstr(402), 8 + ((9 - 8) * has_trait(0, dude_obj, 22)));
+                                 set_next_stage_time(quick_stage_time)
+                                 set_sub_stage(wedding_stage_jo_groom_vow)
+                              end else begin
+                                 if (get_sub_stage == wedding_stage_groom_vow_response) then begin
+                                    dude_floater(412);
+                                    set_next_stage_time(quick_stage_time)
+                                    set_sub_stage(wedding_stage_grisham_response_2)
+                                 end else begin
+                                    if (get_sub_stage == wedding_stage_player_vow_response) then begin
+                                       dude_floater(413);
+                                       set_next_stage_time(quick_stage_time)
+                                       set_sub_stage(wedding_stage_pronounce_married)
+                                    end
+                                 end
+                              end
+                           end
+                        end
+                     end
+                  end
+               end
+            end
          end
-      end
-      if (cur_map_index == MAP_MODOC_MAINSTREET) then begin
-         if (self_tile != local_var(LVAR_Home_Tile)) then begin
-            anim_move_to_point_rate(local_var(LVAR_Home_Tile), 5)
+      end else begin
+         if (is_staging_rape) then begin
+            if (self_can_see_dude) then begin
+               if (get_sub_stage == rape_stage_help) then begin
+                  gfade_in(1);
+                  float_msg(self_obj, mstr(250 + (10 * (dude_is_female)) + (20 * (grisham_dead))), 8 + ((7 - 8) * has_trait(0, dude_obj, 22)));
+                  set_next_stage_time(quick_stage_time)
+                  set_sub_stage(rape_stage_confront)
+               end
+            end
+         end else begin
+            if (self_can_see_dude) then begin
+               if ((local_var(LVAR_Hostile) != 0) or (dude_enemy_modoc)) then begin
+                  self_attack_dude;
+               end
+            end
+            if (cur_map_index == MAP_MODOC_MAINSTREET) then begin
+               if (self_tile != local_var(LVAR_Home_Tile)) then begin
+                  anim_move_to_point_rate(local_var(LVAR_Home_Tile), 5)
+               end
+            end
          end
       end
    end
+   return 0;
+   LVar0 := 0;
 end
 
 procedure damage_p_proc begin
@@ -308,51 +429,110 @@ end
 
 procedure pickup_p_proc begin
    if (source_obj == dude_obj) then begin
-      if (Miria_In_Party == false) then begin
+      if ((Miria_In_Party == false) or (global_var(GVAR_PLAYER_MARRIED) != 1)) then begin
          call Node998;
       end
    end
 end
 
 procedure talk_p_proc begin
-
+   variable LVar0 := 0;
+   LVar0 := self_armor;
+   set_local_var(LVAR_HAVESEX, 0);
    if (dude_enemy_modoc == false) then begin
       if (is_staging_wedding) then begin
-         if (get_sub_stage == wedding_stage_grisham_response) then begin
-            floater_afraid(450 + (20*grisham_dead)); // Seraph's Fix: added (20*grisham_dead)
-         end
-      end else if (is_staging_rape) then begin
-         floater_afraid(251);
+         if (get_sub_stage == wedding_stage_grisham_response) then
+            float_msg(self_obj, mstr(450 + (20 * (grisham_dead))), 8 + ((7 - 8) * has_trait(0, dude_obj, 22)));
       end else begin
-         script_overrides;
-         if (insulted) then begin
-            floater(150 + dude_is_male);
-         end else if ((married_to_sibling) or (dude_was_married)) then begin
-            if (grisham_dead) then begin
-               floater(500);
-            end else begin
-               floater(152 + dude_is_female);
-            end
-         end else begin
-            did_node_14 := 0;
-            start_gdialog(NAME,self_obj,4,-1,-1);
-            gSay_Start;
-               if (Miria_In_Party) then begin
-                  call PARTY_NODE_X;
+         if (is_staging_rape) then
+            float_msg(self_obj, mstr(251), 8 + ((7 - 8) * has_trait(0, dude_obj, 22)));
+         else begin
+            script_overrides;
+            if (insulted) then
+               floater(150 + (dude_is_male));
+            else begin
+               if ((married_to_sibling) or (dude_was_married)) then begin
+                  if (grisham_dead) then
+                     floater(500);
+                  else
+                     floater(152 + (dude_is_female));
                end else begin
-                  call Node000;
+                  did_node_14 := 0;
+                  start_gdialog(106, self_obj, 4, -1, -1);
+                  gsay_start;
+                  if ((Miria_In_Party) or party_is_waiting) then begin
+                     call Node100;
+                  end else begin
+                     call Node000;
+                  end
+                  gsay_end;
+                  end_dialogue;
                end
-            gSay_End;
-            end_dialogue;
+            end
+            inc_local_var(LVAR_Here_Before);
          end
-         inc_local_var(LVAR_Here_Before);
       end
    end else begin
       set_self_abandon_party;
       call Node998;
       self_attack_dude;
    end
-
+   if (self_armor != LVar0) then begin
+      if (self_armor == 0) then begin
+         art_change_fid_num(self_obj, FID_NFPEAS);
+         floater(random(6000, 6001));
+      end else begin
+         if ((obj_pid(self_armor) == PID_LEATHER_ARMOR) or (obj_pid(self_armor) == PID_LEATHER_ARMOR_MK_II)) then begin
+            art_change_fid_num(self_obj, FID_HFLTHR);
+            floater(random(6005, 6006));
+         end else begin
+            if ((obj_pid(self_armor) == PID_HARDENED_POWER_ARMOR) or (obj_pid(self_armor) == PID_POWERED_ARMOR)) then begin
+               art_change_fid_num(self_obj, FID_HAPOWR);
+               floater(random(6025, 6026));
+            end else begin
+               if ((obj_pid(self_armor) == PID_ADVANCED_POWER_ARMOR_MK2) or (obj_pid(self_armor) == PID_ADVANCED_POWER_ARMOR)) then begin
+                  art_change_fid_num(self_obj, FID_HANPWR);
+                  floater(random(6030, 6031));
+               end else begin
+                  if ((obj_pid(self_armor) == PID_TESLA_ARMOR) or (obj_pid(self_armor) == PID_METAL_ARMOR_MK_II) or (obj_pid(self_armor) == PID_METAL_ARMOR)) then begin
+                     art_change_fid_num(self_obj, FID_HFMETL);
+                     floater(random(6015, 6016));
+                  end else begin
+                     if ((obj_pid(self_armor) == PID_LEATHER_JACKET) or (obj_pid(self_armor) == PID_CURED_LEATHER_ARMOR)) then begin
+                        art_change_fid_num(self_obj, FID_HFMAXX);
+                        floater(random(6010, 6011));
+                     end else begin
+                        if ((obj_pid(self_armor) == PID_BROTHERHOOD_COMBAT_ARMOR) or (obj_pid(self_armor) == PID_COMBAT_ARMOR) or (obj_pid(self_armor) == PID_COMBAT_ARMOR_MK_II)) then begin
+                           art_change_fid_num(self_obj, FID_HFCMBT);
+                           floater(random(6020, 6021));
+                        end else begin
+                           if ((obj_pid(self_armor) == PID_BRIDGEKEEPERS_ROBE) or (obj_pid(self_armor) == PID_PURPLE_ROBE)) then begin
+                              art_change_fid_num(self_obj, FID_HAROBE);
+                              floater(random(6035, 6036));
+                           end else begin
+                              if (obj_pid(self_armor) == PID_ENVIRONMENTAL_ARMOUR) then begin
+                                 art_change_fid_num(self_obj, FID_HAENRO);
+                                 floater(random(6040, 6041));
+                              end
+                           end
+                        end
+                     end
+                  end
+               end
+            end
+         end
+      end
+      restock_obj := critter_inven_obj(self_obj, 1);
+      debug_msg("armour pid == " + obj_pid(restock_obj));
+      rm_obj_from_inven(self_obj, restock_obj);
+      add_obj_to_inven(self_obj, restock_obj);
+   end
+   if (local_var(LVAR_HAVESEX) != 0) then begin
+      call Node2502;
+      set_local_var(LVAR_HAVESEX, 0);
+   end
+   return 0;
+   LVar0 := 0;
 end
 
 procedure destroy_p_proc begin
@@ -363,7 +543,17 @@ end
 procedure look_at_p_proc begin
    script_overrides;
    if (local_var(LVAR_Here_Before) > 0) then begin
-      display_msg(mstr(101));
+      if ((global_var(GVAR_PLAYER_MARRIED) != 1) and (global_var(GVAR_PLAYER_WAS_MARRIED) != 1)) then begin
+         display_msg(mstr(101));
+      end else begin
+         if (dude_spouse_is_female) then begin
+            display_msg(mstr(103));
+         end else begin
+            if ((global_var(GVAR_PLAYER_MARRIED) != 1) and (dude_spouse_was_female)) then begin
+               display_msg(mstr(104));
+            end
+         end
+      end
    end else begin
       display_msg(mstr(100));
    end
@@ -371,59 +561,76 @@ end
 
 procedure description_p_proc begin
    script_overrides;
-   display_msg(mstr(102));
+   if ((global_var(GVAR_PLAYER_MARRIED) != 1) and (dude_spouse_was_female)) then begin
+      display_msg(mstr(random(9100, 9101)));
+   end else begin
+      if (dude_spouse_is_female) then begin
+         display_msg(mstr(random(105, 109)));
+         if ((random(1, 100) >= 25) and (dude_spouse_is_female)) then
+            floater(random(5200, 5206));
+      end else begin
+         display_msg(mstr(102));
+      end
+   end
 end
 
 procedure use_skill_on_p_proc begin
 end
 
-//added by killap
 procedure use_obj_on_p_proc begin
-   if ( (obj_pid(obj_being_used_with) == PID_MICRO_FUSION_CELL) or (obj_pid(obj_being_used_with) == PID_SMALL_ENERGY_CELL) ) then begin
+   if ((obj_pid(obj_being_used_with) == PID_MICRO_FUSION_CELL) or (obj_pid(obj_being_used_with) == PID_SMALL_ENERGY_CELL)) then begin
       script_overrides;
-      display_msg(g_mstr(20000));
+      display_msg("That does nothing.");
+   end else begin
+      if ((dude_spouse_is_female) and (global_var(GVAR_PLAYER_WAS_MARRIED) != 1)) then begin
+         if ((obj_pid(obj_being_used_with) == PID_STIMPAK) or (obj_pid(obj_being_used_with) == PID_SUPER_STIMPAK)) then
+            floater(random(5010, 5012));
+         else begin
+            if (obj_pid(obj_being_used_with) == PID_HEALING_POWDER) then
+               floater(random(5020, 5023));
+            else begin
+               if ((obj_pid(obj_being_used_with) == PID_BEER) or (obj_pid(obj_being_used_with) == PID_BOOZE) or (obj_pid(obj_being_used_with) == PID_ROT_GUT) or (obj_pid(obj_being_used_with) == PID_ROENTGEN_RUM) or (obj_pid(obj_being_used_with) == PID_GAMMA_GULP_BEER)) then
+                  floater(random(5030, 5032));
+            end
+         end
+      end
    end
 end
-//end added
 
-// dialog action functions
 procedure Node999 begin
-  // do absolutely everything that pertains to nothing
 end
+
 procedure Node998 begin
-   set_local_var(LVAR_Hostile,2);
+   set_local_var(LVAR_Hostile, 2);
 end
+
 procedure Node996 begin
-// Begin Seraph's Code
    if (grisham_dead) then begin
       biff := create_object_sid(PID_GRISHAM, 28512, self_elevation, SCRIPT_MCGRISHA);
       gun := create_object(PID_SAWED_OFF_SHOTGUN, 0, 0);
-
       add_obj_to_inven(biff, gun);
       add_mult_objs_to_inven(biff, create_object(PID_SHOTGUN_SHELLS, 0, 0), 4);
       wield_obj_critter(biff, gun);
    end
-// End Seraph's Code */
    setup_rape_stage;
    set_local_var(LVAR_Mode,mode_rape);
 end
+
 procedure Node995 begin
-// Begin Seraph's Code
    if (grisham_dead) then begin
       biff := create_object_sid(PID_GRISHAM, 28512, self_elevation, SCRIPT_MCGRISHA);
       gun := create_object(PID_SAWED_OFF_SHOTGUN, 0, 0);
-
       add_obj_to_inven(biff, gun);
       add_mult_objs_to_inven(biff, create_object(PID_SHOTGUN_SHELLS, 0, 0), 4);
       wield_obj_critter(biff, gun);
    end
-// End Seraph's Code */
-   do_default_sex;
+   do_default_sex
    setup_wedding_stage
 end
 
-// dialog nodes
 procedure Node000 begin
+   if (local_var(LVAR_TALLY) != 10) then
+      set_local_var(LVAR_TALLY, 10);
    Reply(154 + (local_var(LVAR_Here_Before) > 0));
    inc_local_var(LVAR_Here_Before);
    NOption(156,Node018,004);
@@ -432,6 +639,7 @@ procedure Node000 begin
    NOption(g_bye,Node999,004);
    NOption(159,Node026,-003);
 end
+
 procedure Node002 begin
    Reply(160);
    NOption(156,Node018,004);
@@ -439,6 +647,7 @@ procedure Node002 begin
    NOption(157,Node013,004);
    NOption(g_bye,Node999,004);
 end
+
 procedure Node010 begin
    did_node_11 := false;
    did_node_12 := false;
@@ -448,6 +657,7 @@ procedure Node010 begin
    NOption(167,Node014,004);
    NOption(g_bye,Node999,004);
 end
+
 procedure Node011 begin
    did_node_11 := true;
    set_tool_flag;
@@ -459,6 +669,7 @@ procedure Node011 begin
    NOption(170,Node002,004);
    NOption(g_bye,Node999,004);
 end
+
 procedure Node012 begin
    did_node_12 := true;
    Reply(171);
@@ -469,11 +680,13 @@ procedure Node012 begin
    NOption(170,Node002,004);
    NOption(g_bye,Node999,004);
 end
+
 procedure Node013 begin
    Reply(174);
    NOption(170,Node002,004);
    NOption(g_bye,Node999,004);
 end
+
 procedure Node014 begin
    Reply(176 + did_node_14);
    did_node_14 := 1;
@@ -486,24 +699,28 @@ procedure Node014 begin
    NOption(182,Node002,004);
    NOption(g_bye,Node999,004);
 end
+
 procedure Node015 begin
    Reply(183);
    NOption(184,Node014,004);
    NOption(182,Node002,004);
    NOption(g_bye,Node999,004);
 end
+
 procedure Node016 begin
    Reply(186);
    NOption(184,Node014,004);
    NOption(182,Node002,004);
    NOption(g_bye,Node999,004);
 end
+
 procedure Node017 begin
    Reply(189);
    NOption(184,Node014,004);
    NOption(182,Node002,004);
    NOption(g_bye,Node999,004);
 end
+
 procedure Node018 begin
    Reply(192);
    if (dude_charisma + is_success(do_check(dude_obj, STAT_ch, 0)) + town_rep_positive) >= 9 then begin
@@ -513,6 +730,7 @@ procedure Node018 begin
    NOption(170,Node002,004);
    NOption(g_bye,Node999,004);
 end
+
 procedure Node019 begin
    Reply(196);
    NOption(197,Node021,004);
@@ -523,26 +741,30 @@ procedure Node019 begin
    NOption(170,Node002,004);
    NOption(g_bye,Node999,004);
 end
+
 procedure Node020 begin
    Reply(202);
    NOption(203,Node996,004);
    NOption(204,Node999,004);
 end
+
 procedure Node021 begin
    set_local_var(LVAR_Insulted,insult_bad);
    Reply(205);
    NOption(g_mstr(350),Node999,004);
 end
+
 procedure Node022 begin
-   //set_local_var(LVAR_Insulted, insult_light);
    Reply(206);
    NOption(170,Node023,004);
    NOption(g_bye,Node999,004);
 end
+
 procedure Node023 begin
    Reply(208);
    NOption(g_mstr(350),Node999,004);
 end
+
 procedure Node024 begin
    Reply(209);
    NOption(210,Node025,004);
@@ -551,88 +773,708 @@ procedure Node024 begin
    NOption(213,Node021,004);
    NOption(g_bye,Node999,004);
 end
+
 procedure Node025 begin
    Reply(214);
    NOption(215,Node995,004);
 end
+
 procedure Node026 begin
    Reply(216);
    NOption(217,Node027,-003);
    NOption(218,Node999,-003);
 end
+
 procedure Node027 begin
    Reply(219);
    NOption(g_mstr(350),Node999,-003);
 end
 
-// party stuff
 procedure Node100 begin
    Reply_Rand(1000,1004);
-   party_member_default_options;
+   set_follow_close;
+   miria_party_member_options;
 end
+
 procedure Node1001 begin
-   // heal yourself
    obj_heal(self_obj)
    global_temp := 0;
    if (party_healed_max) then begin
       Reply(1100);
-   end else if (party_healed_good) then begin
-      Reply(1200);
-   end else if (party_healed_hurt) then begin
-      Reply(1300);
    end else begin
-      Reply(1400);
+      if (party_healed_good) then begin
+         Reply(1200);
+      end else begin
+         if (party_healed_hurt) then begin
+            Reply(1300);
+         end else begin
+            Reply(1400);
+         end
+      end
    end
-   party_member_default_options;
+   set_follow_close;
+   miria_party_member_options;
 end
+
 procedure Node1002 begin
-   // wait here
-   Reply(1500);
-   party_member_default_options;
+   set_party_waiting;
+   rm_timer_event(self_obj);
+   Reply_Rand(8000,8004);
+   set_follow_close;
+   miria_party_member_options_no_additional_option;
 end
+
 procedure Node1003 begin
-   // put your weapon away
    inven_unwield(self_obj);
    Reply(1600);
-   party_member_default_options;
+   set_follow_close;
+   miria_party_member_options;
 end
+
 procedure Node1004 begin
-   // follow close
    set_follow_close;
    Reply(1700);
-   party_member_default_options;
+   set_follow_close;
+   miria_party_member_options;
 end
+
 procedure Node1005 begin
-   // follow medium
    Reply(1800);
-   party_member_default_options;
+   set_follow_medium;
+   miria_party_member_options;
 end
+
 procedure Node1006 begin
-   // follow far
    Reply(1900);
-   party_member_default_options;
+   set_follow_far;
+   miria_party_member_options;
 end
+
 procedure Node1007 begin
-   // distance
    Reply(1007);
-   party_member_def_follow_options;
+   miria_party_follow_options;
 end
+
 procedure Node1008 begin
-   // gear
    Reply(1008);
-   party_member_def_gear_options;
+   miria_party_gear_options;
 end
+
 procedure Node1009 begin
-   // remove armor
    remove_armor(self_obj)
    Reply(1009);
-   party_member_default_options;
+   set_follow_close;
+   miria_party_member_options;
 end
+
 procedure Node1010 begin
-   // weapons that can be used
    Reply(1010);
-   party_member_default_options;
+   set_follow_close;
+   miria_party_member_options;
 end
+
 procedure Node1100 begin
-   // doesn't use the rejoin cuz you can't get rid of them, but this node needs to be here
+   variable LVar0 := 0;
+   if ((global_var(GVAR_PLAYER_MARRIED) != 1) and (dude_spouse_was_female)) then begin
+      set_self_abandon_party_no_spouse;
+      Reply_Rand(9110,9120);
+      NOption(9130,Node999,001);
+      NOption(9140,Node999,001);
+   end else begin
+      set_local_var(LVAR_WAITING, 0);
+      party_add_self;
+      if (is_critter_dead(self_obj) == false) then begin
+         rm_timer_event(self_obj);
+         add_timer_event(self_obj, game_ticks(random(40, 50)), 1);
+      end
+      if (LVar0 == 0) then begin
+         if ((game_time_hour >= 400) and (game_time_hour <= 900)) then begin
+            LVar0 := 9161;
+         end else begin
+            if ((game_time_hour > 900) and (game_time_hour <= 1300)) then begin
+               LVar0 := 9162;
+            end else begin
+               if ((game_time_hour > 1300) and (game_time_hour <= 2200)) then begin
+                  LVar0 := 9163;
+               end else begin
+                  if ((game_time_hour > 2200) and (game_time_hour < 400)) then begin
+                     LVar0 := 9164;
+                  end
+               end
+            end
+         end
+      end
+      if ((global_var(GVAR_CHILDKILLER_REPUTATION) >= 5) or (global_var(GVAR_PLAYER_REPUTATION) < -500)) then begin
+         Reply_Rand(8010,8011);
+         NOption(random(9170, 9180),Node999,001);
+         NOption(mstr(9160) + mstr(LVar0),Node999,001);
+      end else begin
+         Reply_Rand(8005,8009);
+         NOption(9150,Node999,001);
+         NOption(mstr(9160) + mstr(LVar0),Node999,001);
+      end
+   end
+   return 0;
+   LVar0 := 0;
 end
+
+procedure Node2000 begin
+   Reply_Rand(10001,10005);
+   NOption(10010,Node2100,004);
+   NOption(random(10030, 10033),Node2200,004);
+   NOption(random(10048, 10051),Node2300,004);
+   NOption(10070,Node2400,004);
+   NOption(11200,Node2600,004);
+   NOption(10006,Node999,004);
+end
+
+procedure Node2100 begin
+   if (local_var(LVAR_DID2100) < 2) then begin
+      inc_local_var(LVAR_DID2100);
+      set_local_var(LVAR_ASK1TIME, game_time + 2 * ONE_GAME_MONTH);
+      Reply(10011);
+      NOption(10027,Node100,004);
+      NOption(10029,Node999,004);
+   end else begin
+      if (local_var(LVAR_ASK1TIME) >= game_time) then begin
+         set_local_var(LVAR_ASK1TIME, game_time + 2 * ONE_GAME_MONTH);
+         Reply_Rand(10012,10016);
+         NOption(random(10022, 10023),Node100,004);
+         NOption(random(10024, 10025),Node999,004);
+      end else begin
+         set_local_var(LVAR_ASK1TIME, game_time + 2 * ONE_GAME_MONTH);
+         Reply_Rand(10017,10021);
+         NOption(random(10026, 10027),Node100,004);
+         NOption(random(10028, 10029),Node999,004);
+      end
+   end
+end
+
+procedure Node2200 begin
+   set_local_var(LVAR_ASK2TIME, game_time + 2 * ONE_GAME_MONTH);
+   Reply_Rand(10034,10038);
+   NOption(random(10039, 10040),Node2500,004);
+   NOption(10041,Node100,004);
+   NOption(random(10042, 10043),Node999,004);
+end
+
+procedure Node2300 begin
+   set_local_var(LVAR_ASK3TIME, game_time + 2 * ONE_GAME_MONTH);
+   Reply_Rand(10052,10056);
+   if (dude_is_female) then begin
+      NOption(random(10057, 10065),Node2501,004);
+   end
+   NOption(random(10066, 10067),Node2500,004);
+   NOption(10068,Node100,004);
+   NOption(10069,Node999,004);
+end
+
+procedure Node2400 begin
+   if ((game_time < local_var(LVAR_ASK1TIME)) and (game_time < local_var(LVAR_ASK2TIME)) and (game_time < local_var(LVAR_ASK3TIME)) and (game_time < local_var(LVAR_SEXTIME))) then begin
+      if ((global_var(GVAR_BUFF_OUT_ADDICT) > 0) or (global_var(GVAR_MENTATS_ADDICT) > 0) or (global_var(GVAR_PSYCHO_ADDICT) > 0) or (global_var(GVAR_RADAWAY_ADDICT) > 0) or (global_var(GVAR_ADDICT_JET) != 0)) then begin
+         Reply(10077);
+         NOption(10091,Node100,004);
+         NOption(10089,Node999,004);
+      end else begin
+         if (global_var(GVAR_ADDICT_TRAGIC) > 0) then begin
+            Reply(10096);
+            NOption(10088,Node100,004);
+            NOption(10089,Node999,004);
+         end else begin
+            if (global_var(GVAR_ALCOHOL_ADDICT) > 0) then begin
+               Reply(11050);
+               NOption(10091,Node100,004);
+               NOption(10089,Node999,004);
+            end else begin
+               if (global_var(GVAR_NEW_RENO_MADE_MAN) > 0) then begin
+                  Reply(10081);
+                  NOption(10094,Node100,004);
+                  NOption(10095,Node999,004);
+               end else begin
+                  if (global_var(GVAR_REPUTATION_SLAVER) != 0) then begin
+                     Reply(10079);
+                     NOption(11388,Node100,004);
+                     NOption(10093,Node999,004);
+                  end else begin
+                     if (global_var(GVAR_PLAYER_REPUTATION) <= -500) then begin
+                        Reply(10083);
+                        NOption(11370,Node100,004);
+                        NOption(11375,Node999,004);
+                     end else begin
+                        Reply_Rand(10071,10073);
+                        NOption(random(10085, 10086),Node100,004);
+                        NOption(10087,Node999,004);
+                     end
+                  end
+               end
+            end
+         end
+      end
+   end else begin
+      if ((global_var(GVAR_BUFF_OUT_ADDICT) > 0) or (global_var(GVAR_MENTATS_ADDICT) > 0) or (global_var(GVAR_PSYCHO_ADDICT) > 0) or (global_var(GVAR_RADAWAY_ADDICT) > 0) or (global_var(GVAR_ADDICT_JET) > 0)) then begin
+         Reply(10078);
+         NOption(10091,Node100,004);
+         NOption(10092,Node999,004);
+      end else begin
+         if (global_var(GVAR_ADDICT_TRAGIC) > 0) then begin
+            Reply(10097);
+            NOption(10098,Node100,004);
+            NOption(10099,Node999,004);
+         end else begin
+            if (global_var(GVAR_ALCOHOL_ADDICT) > 0) then begin
+               Reply(11051);
+               NOption(10091,Node100,004);
+               NOption(10092,Node999,004);
+            end else begin
+               if (global_var(GVAR_NEW_RENO_MADE_MAN) > 0) then begin
+                  Reply(10082);
+                  NOption(10094,Node100,004);
+                  NOption(10095,Node999,004);
+               end else begin
+                  if (global_var(GVAR_REPUTATION_SLAVER) != 0) then begin
+                     Reply(10080);
+                     NOption(11052,Node100,004);
+                     NOption(11053,Node999,004);
+                  end else begin
+                     if (global_var(GVAR_PLAYER_REPUTATION) < -500) then begin
+                        Reply(10084);
+                        NOption(11054,Node100,004);
+                        NOption(11386,Node999,004);
+                     end else begin
+                        Reply_Rand(10074,10076);
+                        NOption(random(10088, 10089),Node100,004);
+                        NOption(10090,Node999,004);
+                     end
+                  end
+               end
+            end
+         end
+      end
+   end
+end
+
+procedure Node2500 begin
+   if (20 >= random(1, 100)) then begin
+      if (50 >= random(1, 100)) then begin
+         Reply(11030);
+         if (dude_is_female) then begin
+            NOption(11035,Node999,004);
+         end else begin
+            NOption(11036,Node999,004);
+         end
+      end else begin
+         Reply(11031);
+         NOption(11037,Node2504,004);
+         NOption(11038,Node999,004);
+      end
+   end else begin
+      call Node2503;
+   end
+end
+
+procedure Node2501 begin
+   gfade_out(1);
+   set_local_var(LVAR_SEXTIME, game_time + 2 * ONE_GAME_MONTH);
+   set_local_var(LVAR_HAVESEX, 1);
+   game_time_advance(60 * (60 * 10));
+   call Node999;
+end
+
+procedure Node2502 begin
+   gfade_in(1);
+   if (local_var(LVAR_HAVESEX) == 1) then begin
+      display_msg(mstr(11000));
+   end else begin
+      if ((has_trait(0, dude_obj, 94) == 1) or (global_var(GVAR_NEW_RENO_PORN_STAR) > 0) or (global_var(GVAR_SEXPERT) > 0) or (global_var(GVAR_PLAYER_SEX_LEVEL) >= 100)) then begin
+         if (local_var(LVAR_HAVESEX) == 2) then begin
+            display_msg(mstr(random(11003, 11012)));
+         end else begin
+            display_msg(mstr(11008));
+         end
+      end else begin
+         if (local_var(LVAR_HAVESEX) == 2) then begin
+            display_msg(mstr(random(11001, 11005)));
+         end else begin
+            display_msg(mstr(11002));
+         end
+      end
+   end
+   float_msg(self_obj, mstr(random(11020, 11025)), 4);
+end
+
+procedure Node2503 begin
+   gfade_out(1);
+   set_local_var(LVAR_SEXTIME, game_time + 2 * ONE_GAME_MONTH);
+   set_local_var(LVAR_HAVESEX, 2);
+   advance_sex_time;
+   up_sex_level(1);
+   set_sexpert_if_necessary
+   clear_dude_virgin
+   call Node999;
+end
+
+procedure Node2504 begin
+   gfade_out(1);
+   set_local_var(LVAR_HAVESEX, 3);
+   advance_sex_time;
+   if (dude_is_female) then begin
+      up_sex_level(1);
+      clear_dude_virgin
+   end
+   call Node999;
+end
+
+procedure Node2600 begin
+   if (local_var(LVAR_DID2600) < 2) then begin
+      inc_local_var(LVAR_DID2600);
+      Reply(11215);
+      NOption(10022,Node100,004);
+      NOption(10024,Node999,004);
+   end else begin
+      if (local_var(LVAR_CITY_WANTS) == 0) then begin
+         set_local_var(LVAR_CITY_WANTS, random(1, 8));
+      end else begin
+         if (local_var(LVAR_TALLY) < 20) then begin
+            if (global_var(GVAR_PLAYER_REPUTATION) > -500) then begin
+               Reply_Rand(11210,11214);
+               NOption(random(11370, 11372),Node100,004);
+               NOption(random(11375, 11377),Node999,004);
+            end else begin
+               Reply_Rand(11210,11214);
+               NOption(random(11380, 11382),Node100,004);
+               NOption(random(11385, 11387),Node999,004);
+            end
+         end else begin
+            if (local_var(LVAR_CITY_WANTS) == 1) then begin
+               if (global_var(GVAR_TOWN_REP_MODOC) <= -30) then begin
+                  if (dude_is_male) then begin
+                     Reply(11229);
+                     NOption(11335,Node100,004);
+                     NOption(11336,Node999,004);
+                  end else begin
+                     Reply(11349);
+                     NOption(11355,Node100,004);
+                     NOption(11356,Node999,004);
+                  end
+               end else begin
+                  if (dude_is_male) then begin
+                     Reply(11220);
+                     NOption(11335,Node100,004);
+                     NOption(11336,Node999,004);
+                  end else begin
+                     Reply(11340);
+                     NOption(11357,Node100,004);
+                     NOption(11358,Node999,004);
+                  end
+               end
+            end else begin
+               if (local_var(LVAR_CITY_WANTS) == 2) then begin
+                  if (global_var(GVAR_TOWN_REP_ARROYO) <= -30) then begin
+                     if (dude_is_male) then begin
+                        Reply(11229);
+                        NOption(11335,Node100,004);
+                        NOption(11336,Node999,004);
+                     end else begin
+                        Reply(11349);
+                        NOption(11355,Node100,004);
+                        NOption(11356,Node999,004);
+                     end
+                  end else begin
+                     if (dude_is_male) then begin
+                        Reply(11221);
+                        NOption(11355,Node100,004);
+                        NOption(11356,Node999,004);
+                     end else begin
+                        Reply(11342);
+                        NOption(11355,Node100,004);
+                        NOption(11356,Node999,004);
+                     end
+                  end
+               end else begin
+                  if (local_var(LVAR_CITY_WANTS) == 3) then begin
+                     if ((global_var(GVAR_TOWN_REP_NEW_RENO) <= -30) or (metarule(METARULE_AREA_KNOWN, AREA_NEW_RENO) != 2)) then begin
+                        if (dude_is_male) then begin
+                           Reply(11229);
+                           NOption(11335,Node100,004);
+                           NOption(11336,Node999,004);
+                        end else begin
+                           Reply(11349);
+                           NOption(11355,Node100,004);
+                           NOption(11356,Node999,004);
+                        end
+                     end else begin
+                        if (dude_is_male) then begin
+                           Reply(11222);
+                           NOption(11335,Node100,004);
+                           NOption(11336,Node999,004);
+                        end else begin
+                           Reply(11343);
+                           NOption(11355,Node100,004);
+                           NOption(11356,Node999,004);
+                        end
+                     end
+                  end else begin
+                     if (local_var(LVAR_CITY_WANTS) == 4) then begin
+                        if ((global_var(GVAR_TOWN_REP_NCR) <= -30) or (metarule(METARULE_AREA_KNOWN, AREA_NCR) != 2)) then begin
+                           if (dude_is_male) then begin
+                              Reply(11229);
+                              NOption(11335,Node100,004);
+                              NOption(11336,Node999,004);
+                           end else begin
+                              Reply(11349);
+                              NOption(11355,Node100,004);
+                              NOption(11356,Node999,004);
+                           end
+                        end else begin
+                           if (dude_is_male) then begin
+                              Reply(11223);
+                              NOption(11335,Node100,004);
+                              NOption(11336,Node999,004);
+                           end else begin
+                              Reply(11344);
+                              NOption(11355,Node100,004);
+                              NOption(11356,Node999,004);
+                           end
+                        end
+                     end else begin
+                        if (local_var(LVAR_CITY_WANTS) == 5) then begin
+                           if (metarule(17, 11) != 2) then begin
+                              if (dude_is_male) then begin
+                                 Reply(11229);
+                                 NOption(11335,Node100,004);
+                                 NOption(11336,Node999,004);
+                              end else begin
+                                 Reply(11349);
+                                 NOption(11355,Node100,004);
+                                 NOption(11356,Node999,004);
+                              end
+                           end else begin
+                              if ((global_var(GVAR_TOWN_REP_VAULT_13) <= -30) or (global_var(GVAR_ENDGAME_MOVIE_VAULT_13) != 1)) then begin
+                                 if (dude_is_male) then begin
+                                    Reply(mstr(11224) + mstr(11226));
+                                    NOption(11335,Node100,004);
+                                    NOption(11336,Node999,004);
+                                 end else begin
+                                    Reply(11346);
+                                    NOption(11355,Node100,004);
+                                    NOption(11356,Node999,004);
+                                 end
+                              end else begin
+                                 if (dude_is_male) then begin
+                                    Reply(mstr(11224) + mstr(11225));
+                                    NOption(11335,Node100,004);
+                                    NOption(11336,Node999,004);
+                                 end else begin
+                                    Reply(11345);
+                                    NOption(11355,Node100,004);
+                                    NOption(11356,Node999,004);
+                                 end
+                              end
+                           end
+                        end else begin
+                           if (local_var(LVAR_CITY_WANTS) == 6) then begin
+                              if ((global_var(GVAR_TOWN_REP_REDDING) <= -30) or (metarule(METARULE_AREA_KNOWN, AREA_REDDING) != 2)) then begin
+                                 if (dude_is_male) then begin
+                                    Reply(11229);
+                                    NOption(11335,Node100,004);
+                                    NOption(11336,Node999,004);
+                                 end else begin
+                                    Reply(11349);
+                                    NOption(11355,Node100,004);
+                                    NOption(11356,Node999,004);
+                                 end
+                              end else begin
+                                 if (dude_is_male) then begin
+                                    Reply(11227);
+                                    NOption(11335,Node100,004);
+                                    NOption(11336,Node999,004);
+                                 end else begin
+                                    Reply(11347);
+                                    NOption(11357,Node100,004);
+                                    NOption(11358,Node999,004);
+                                 end
+                              end
+                           end else begin
+                              if (local_var(LVAR_CITY_WANTS) == 7) then begin
+                                 if ((global_var(GVAR_TOWN_REP_VAULT_CITY) <= -30) or (metarule(METARULE_AREA_KNOWN, AREA_VAULT_CITY) != 2) or (global_var(GVAR_ENEMY_VAULT_CITY) != 0)) then begin
+                                    if (dude_is_male) then begin
+                                       Reply(11229);
+                                       NOption(11335,Node100,004);
+                                       NOption(11336,Node999,004);
+                                    end else begin
+                                       Reply(11349);
+                                       NOption(11355,Node100,004);
+                                       NOption(11356,Node999,004);
+                                    end
+                                 end else begin
+                                    if (dude_is_male) then begin
+                                       Reply(11228);
+                                       NOption(11335,Node100,004);
+                                       NOption(11336,Node999,004);
+                                    end else begin
+                                       Reply(11348);
+                                       NOption(11355,Node100,004);
+                                       NOption(11356,Node999,004);
+                                    end
+                                 end
+                              end else begin
+                                 if (dude_is_female) then begin
+                                    if ((global_var(GVAR_TOWN_REP_THE_DEN) <= -30) or (metarule(METARULE_AREA_KNOWN, AREA_DEN) != 0) or (global_var(GVAR_DEN_ORPHANAGE) != 3) or (global_var(GVAR_ENEMY_DEN) != 0)) then begin
+                                       Reply(11341);
+                                       NOption(11355,Node100,004);
+                                       NOption(11356,Node999,004);
+                                    end else begin
+                                       Reply(11349);
+                                       NOption(11355,Node100,004);
+                                       NOption(11356,Node999,004);
+                                    end
+                                 end else begin
+                                    Reply(11330);
+                                    NOption(11335,Node100,004);
+                                    NOption(11336,Node999,004);
+                                 end
+                              end
+                           end
+                        end
+                     end
+                  end
+               end
+            end
+         end
+      end
+   end
+end
+
+procedure location_floats begin
+   if (75 >= random(1, 100)) then begin
+if ((cur_map_index == MAP_RND_CITY_8) or (cur_map_index == MAP_RND_CITY_7) or (cur_map_index == MAP_RND_CITY_6) or (cur_map_index == MAP_RND_CITY_6) or (cur_map_index == MAP_RND_CITY_5) or (cur_map_index == MAP_RND_CITY_4) or (cur_map_index == MAP_RND_CITY_3) or (cur_map_index == MAP_RND_CITY_2) or (cur_map_index == MAP_RND_CITY1)) then
+         float_msg(self_obj, mstr(random(5720, 5724)), 12);
+      else if ((cur_map_index == MAP_RND_MOUNTAIN1) or (cur_map_index == MAP_RND_MOUNTAIN2) or (cur_map_index == MAP_RND_MOUNTAIN_3) or (cur_map_index == MAP_RND_MOUNTAIN_4) or (cur_map_index == MAP_RND_MOUNTAIN_5) or (cur_map_index == MAP_RND_MOUNTAIN_6)) then
+         float_msg(self_obj, mstr(random(5715, 5719)), 12);
+      else if ((cur_map_index == MAP_RND_DESERT_12) or (cur_map_index == MAP_RND_DESERT_11) or (cur_map_index == MAP_RND_DESERT_10) or (cur_map_index == MAP_RND_DESERT_9) or (cur_map_index == MAP_RND_DESERT_8) or (cur_map_index == MAP_RND_DESERT7) or (cur_map_index == MAP_RND_DESERT6) or (cur_map_index == MAP_RND_DESERT5) or (cur_map_index == MAP_RND_DESERT4) or (cur_map_index == MAP_RND_DESERT_3) or (cur_map_index == MAP_RND_DESERT_2) or (cur_map_index == MAP_RND_DESERT_1)) then
+         float_msg(self_obj, mstr(random(5710, 5714)), 12);
+      else if ((cur_map_index == MAP_RND_COAST1) or (cur_map_index == MAP_RND_COAST2) or (cur_map_index == MAP_RND_COAST3) or (cur_map_index == MAP_RND_COAST4) or (cur_map_index == MAP_RND_COAST5) or (cur_map_index == MAP_RND_COAST6) or (cur_map_index == MAP_RND_COAST7) or (cur_map_index == MAP_RND_COAST8) or (cur_map_index == MAP_RND_COAST9) or (cur_map_index == MAP_RND_COAST_10) or (cur_map_index == MAP_RND_COAST_11) or (cur_map_index == MAP_RND_COAST_12)) then
+         float_msg(self_obj, mstr(random(5705, 5709)), 12);
+      else if ((cur_map_index == MAP_RND_CAVERN_7) or (cur_map_index == MAP_RND_CAVERN_6) or (cur_map_index == MAP_RND_DESERT_13) or (cur_map_index == MAP_RND_CAVERN4) or (cur_map_index == MAP_RND_CAVERN3) or (cur_map_index == MAP_RND_CAVERN2) or (cur_map_index == MAP_RND_CAVERN1) or (cur_map_index == MAP_RND_CAVERN0)) then
+         float_msg(self_obj, mstr(random(5700, 5704)), 12);
+      else if (cur_map_index == MAP_ENCLAVE_END_FIGHT) then
+         float_msg(self_obj, mstr(5680), 12);
+      else if (cur_map_index == MAP_ENCLAVE_PRESIDENT) then
+         float_msg(self_obj, mstr(5679), 12);
+      else if (cur_map_index == MAP_ENCLAVE_REACTOR) then
+         float_msg(self_obj, mstr(5678), 12);
+      else if (cur_map_index == MAP_ENCLAVE_TRAP_ROOM) then
+         float_msg(self_obj, mstr(5677), 12);
+      else if (cur_map_index == MAP_ENCLAVE_BARRACKS) then
+         float_msg(self_obj, mstr(5676), 12);
+      else if (cur_map_index == MAP_ENCLAVE_DOCK) then
+         float_msg(self_obj, mstr(random(5674, 5675)), 12);
+      else if (cur_map_index == MAP_ENCLAVE_DETENTION) then
+         float_msg(self_obj, mstr(random(5672, 5673)), 12);
+      else if (cur_map_index == MAP_SHI_TEMPLE) then
+         float_msg(self_obj, mstr(random(5670, 5671)), 12);
+      else if (cur_map_index == MAP_ELRONOLOGIST_BASE) then
+         float_msg(self_obj, mstr(random(5668, 5669)), 12);
+      else if (cur_map_index == MAP_SHUTTLE_INTERIOR) then
+         float_msg(self_obj, mstr(random(5666, 5667)), 12);
+      else if (cur_map_index == MAP_SHUTTLE_EXTERIOR) then
+         float_msg(self_obj, mstr(random(5664, 5665)), 12);
+      else if (cur_map_index == MAP_SAN_FRAN_CHINATOWN) then
+         float_msg(self_obj, mstr(random(5662, 5663)), 12);
+      else if (cur_map_index == MAP_SAN_FRAN_DOCK) then
+         float_msg(self_obj, mstr(random(5660, 5661)), 12);
+      else if (cur_map_index == MAP_SAN_FRAN_TANKER) then
+         float_msg(self_obj, mstr(random(5658, 5659)), 12);
+      else if (cur_map_index == MAP_NAVARRO_ENTRANCE) then
+         float_msg(self_obj, mstr(random(5656, 5657)), 12);
+      else if (cur_map_index == MAP_BROKEN_HILLS2) then
+         float_msg(self_obj, mstr(random(5654, 5655)), 12);
+      else if (cur_map_index == MAP_BROKEN_HILLS1) then
+         float_msg(self_obj, mstr(random(5652, 5653)), 12);
+      else if (cur_map_index == MAP_REDDING_DOWNTOWN) then
+         float_msg(self_obj, mstr(random(5650, 5651)), 12);
+      else if (cur_map_index == MAP_REDDING_WANAMINGO_ENT) then
+         float_msg(self_obj, mstr(random(5648, 5649)), 12);
+      else if (cur_map_index == MAP_NEW_RENO_GOLGATHA) then
+         float_msg(self_obj, mstr(random(5646, 5647)), 12);
+      else if (cur_map_index == MAP_NEW_RENO_4) then
+         float_msg(self_obj, mstr(random(5644, 5645)), 12);
+      else if (cur_map_index == MAP_NEW_RENO_3) then
+         float_msg(self_obj, mstr(random(5642, 5643)), 12);
+      else if (cur_map_index == MAP_NEW_RENO_2) then
+         float_msg(self_obj, mstr(random(5640, 5641)), 12);
+      else if (cur_map_index == MAP_NEW_RENO_1) then
+         float_msg(self_obj, mstr(random(5638, 5639)), 12);
+      else if (cur_map_index == MAP_MILITARY_BASE_ENTRANCE) then
+         float_msg(self_obj, mstr(random(5636, 5637)), 12);
+      else if (cur_map_index == MAP_NCR_BAZAAR) then
+         float_msg(self_obj, mstr(random(5634, 5635)), 12);
+      else if (cur_map_index == MAP_NCR_COUNCIL) then
+         float_msg(self_obj, mstr(random(5632, 5633)), 12);
+      else if (cur_map_index == MAP_NCR_DOWNTOWN) then
+         float_msg(self_obj, mstr(random(5630, 5631)), 12);
+      else if (cur_map_index == MAP_VAULT_13) then
+         float_msg(self_obj, mstr(random(5628, 5629)), 12);
+      else if (cur_map_index == MAP_VAULT_15) then
+         float_msg(self_obj, mstr(random(5626, 5627)), 12);
+      else if (cur_map_index == MAP_GECKO_ACCESS_TUNNELS) then
+         float_msg(self_obj, mstr(random(5624, 5625)), 12);
+      else if (cur_map_index == MAP_GECKO_SETTLEMENT) then
+         float_msg(self_obj, mstr(random(5622, 5623)), 12);
+      else if (cur_map_index == MAP_GECKO_POWER_PLANT) then
+         float_msg(self_obj, mstr(random(5681, 5682)), 12);
+      else if (cur_map_index == MAP_SIERRA_BATTLE) then
+         float_msg(self_obj, mstr(random(5620, 5621)), 12);
+      else if (cur_map_index == MAP_GHOST_FARM) then
+         float_msg(self_obj, mstr(random(5618, 5619)), 12);
+      else if (cur_map_index == MAP_MODOC_DOWNTHESHITTER) then
+         float_msg(self_obj, mstr(random(5616, 5617)), 12);
+      else if (cur_map_index == MAP_MODOC_BEDNBREAKFAST) then
+         float_msg(self_obj, mstr(random(5614, 5615)), 12);
+      else if (cur_map_index == MAP_MODOC_MAINSTREET) then
+         float_msg(self_obj, mstr(random(5612, 5613)), 12);
+      else if (cur_map_index == MAP_VAULT_CITY_VAULT) then
+         float_msg(self_obj, mstr(random(5610, 5611)), 12);
+      else if (cur_map_index == MAP_VAULTCITY_DOWNTOWN) then
+         float_msg(self_obj, mstr(random(5608, 5609)), 12);
+      else if (cur_map_index == MAP_VAULTCITY_COUNCIL) then
+         float_msg(self_obj, mstr(random(5606, 5607)), 12);
+      else if (cur_map_index == MAP_VAULTCITY_COURTYARD) then
+         float_msg(self_obj, mstr(random(5604, 5605)), 12);
+      else if (cur_map_index == MAP_KLAMATH_1) then
+         float_msg(self_obj, mstr(random(5602, 5603)), 12);
+      else if (cur_map_index == MAP_DEN_ENTRANCE) then
+         float_msg(self_obj, mstr(random(5600, 5601)), 12);
+      else if (cur_map_index == MAP_SPECIAL_RND_PARIAH) then
+         float_msg(self_obj, mstr(5683), 12);
+      else if (cur_map_index == MAP_SPECIAL_RND_WHALE) then
+         float_msg(self_obj, mstr(5684), 12);
+      else if (cur_map_index == MAP_KLAMATH_CANYON) then
+         float_msg(self_obj, mstr(5685), 12);
+      else if (cur_map_index == MAP_GHOST_LAKE) then
+         float_msg(self_obj, mstr(random(5686, 5687)), 12);
+      else if (cur_map_index == MAP_MODOC_WELL) then
+         float_msg(self_obj, mstr(random(5688, 5689)), 12);
+      else if (cur_map_index == MAP_DESTROYED_ARROYO_BRIDGE) then
+         float_msg(self_obj, mstr(random(5690, 5691)), 12);
+      else if (cur_map_index == MAP_KLAMATH_MALL) then
+         float_msg(self_obj, mstr(random(5692, 5693)), 12);
+      else if (cur_map_index == MAP_ARROYO_BRIDGE) then
+         float_msg(self_obj, mstr(random(5694, 5695)), 12);
+      else if (cur_map_index == MAP_ARROYO_VILLAGE) then
+         float_msg(self_obj, mstr(random(5696, 5697)), 12);
+      else if (cur_map_index == MAP_EPA) then
+         float_msg(self_obj, mstr(random(5698, 5699)), 12);
+      else if (cur_map_index == MAP_EPA_SUBLEVELS) then
+         float_msg(self_obj, mstr(random(5800, 5801)), 12);
+      else if (cur_map_index == MAP_PRIMITIVE_TRIBE2) then
+         float_msg(self_obj, mstr(random(5802, 5803)), 12);
+      else if (cur_map_index == MAP_PRIMITIVE_TRIBE1) then
+         float_msg(self_obj, mstr(random(5804, 5805)), 12);
+      else if (cur_map_index == MAP_ABBEY_BASEMENT) then
+         float_msg(self_obj, mstr(random(5806, 5807)), 12);
+      else if (cur_map_index == MAP_ABBEY_OUTSIDE) then
+         float_msg(self_obj, mstr(random(5808, 5809)), 12);
+   end
+end
+

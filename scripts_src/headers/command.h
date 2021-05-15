@@ -1059,16 +1059,21 @@ variable removed_qty;
                                     (is_sex_god * 2 * (x == dude_obj)))
 #define dude_sex_rating          obj_sex_rating(dude_obj)
 #define self_sex_rating          obj_sex_rating(self_obj)
-#define up_sex_status_amt(x)     inc_global_var_amt(GVAR_PLAYER_SEX_LEVEL, dude_sex_rating * x);   \
-                                 inc_global_var_amt(GVAR_SEX_COUNTER, x);                          \
-                                 if (global_var(GVAR_SEX_COUNTER) >= 10) then begin                \
+#define set_gigalo_if_necessary  if (global_var(GVAR_SEX_COUNTER) >= 10) then begin                \
                                     set_global_var(GVAR_GIGALO, 1);                                \
-                                 end                                                               \
-                                 if (dude_sex_rating >= sex_rating_great) then begin               \
+                                 end
+#define set_sexpert_if_necessary if (dude_sex_rating >= sex_rating_great) then begin               \
                                     set_global_var(GVAR_SEXPERT, 1);                               \
-                                 end                                                               \
-                                 if (global_var(GVAR_DUDE_VIRGIN) == 1) then                       \
-                                    set_global_var(GVAR_DUDE_VIRGIN,0)
+                                 end
+#define clear_dude_virgin        if (global_var(GVAR_DUDE_VIRGIN) == 1) then begin                 \
+                                    set_global_var(GVAR_DUDE_VIRGIN, 0);                           \
+                                 end
+#define up_sex_level(x)          inc_global_var_amt(GVAR_PLAYER_SEX_LEVEL, dude_sex_rating * x)
+#define up_sex_status_amt(x)     up_sex_level(x);                                                  \
+                                 inc_global_var_amt(GVAR_SEX_COUNTER, x);                          \
+                                 set_gigalo_if_necessary                                           \
+                                 set_sexpert_if_necessary                                          \
+                                 clear_dude_virgin
 
 #define up_sex_status            up_sex_status_amt(1)
 #define do_default_sex           advance_sex_time;    \

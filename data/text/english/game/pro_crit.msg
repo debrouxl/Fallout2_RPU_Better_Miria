@@ -582,3 +582,9 @@
 {54700}{}{Sentry Bot Mark II}
 {54800}{}{Old Joe}
 {54900}{}{A plant creature}
+{55000}{}{Miria Stage One}
+{55100}{}{Miria Stage Two}
+{55200}{}{Miria Stage Three}
+{55300}{}{Miria Stage Four}
+{55400}{}{Miria Stage Five}
+{55500}{}{Miria Stage Six}

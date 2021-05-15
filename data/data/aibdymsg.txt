@@ -130,6 +130,18 @@ right_leg_end=69
 start_block=41600
 torso_end=59
 
+[Miria]
+eyes_end=85
+groin_end=98
+head_end=9
+left_arm_end=17
+left_leg_end=76
+packet_num=30
+right_arm_end=27
+right_leg_end=66
+start_block=42800
+torso_end=52
+
 [Myron]
 eyes_end=89
 groin_end=99

@@ -151,9 +151,9 @@ chem_use=clean, stims_when_hurt_little, stims_when_hurt_lots, sometimes, anytime
 distance=stay_close, charge, snipe, on_your_own, stay
 run_away_mode=none, coward, finger_hurts, bleeding, not_feeling_good, tourniquet, never
 disposition=none, custom, coward, defensive, aggressive, berserk
-level_minimum=0
-level_up_every=0
-level_pids=-1
+level_minimum=5
+level_up_every=3
+level_pids=16777766,16777767,16777768,16777769,16777770,16777771
 
 [Party Member 11]   ; pMLaddie_PID
 party_member_pid=16777381

@@ -359,7 +359,7 @@ end
 procedure Node980 begin
    from_25:=1;   //killap's fix: moved from Node025
    gfade_out(ONE_GAME_MINUTE);
-   up_sex_status; //added by killap
+   up_sex_status //added by killap
    game_time_advance(4*ONE_GAME_HOUR);//4 hours
    gfade_in(ONE_GAME_MINUTE);
    call Node011;

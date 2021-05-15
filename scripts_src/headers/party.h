@@ -694,6 +694,89 @@ variable tmp_hidden;
                                                 NOption(stupid_msg, DEF_PARTY_STUPID_NODE, -003);        \
                                              end                                                         \
                                              ndebug("USED PARTY MEMBER OPTIONS")
+
+#define party_member_options_heal_abusive(abusive_threshold, heal_msg, heal_normal_msg, heal_abusive_msg)                     \
+                                                if (heal_msg != 0) then begin                                                 \
+                                                   if (self_cur_hits < self_max_hits) then begin                              \
+                                                      if (global_var(GVAR_PLAYER_REPUTATION) <= abusive_threshold) then begin \
+                                                         NOption(heal_abusive_msg, DEF_PARTY_HEAL_NODE, 004);                 \
+                                                      end                                                                     \
+                                                      else begin                                                              \
+                                                         NOption(heal_normal_msg, DEF_PARTY_HEAL_NODE, 004);                  \
+                                                      end                                                                     \
+                                                   end                                                                        \
+                                                end
+
+#define party_member_options_follow_abusive(abusive_threshold, follow_msg, follow_normal_msg, follow_abusive_msg)             \
+                                                if (follow_msg != 0) then begin                                               \
+                                                   if (global_var(GVAR_PLAYER_REPUTATION) <= abusive_threshold) then begin    \
+                                                      NOption(follow_abusive_msg, DEF_PARTY_FOLLOW_NODE, 004);                \
+                                                   end                                                                        \
+                                                   else begin                                                                 \
+                                                      NOption(follow_normal_msg, DEF_PARTY_FOLLOW_NODE, 004);                 \
+                                                   end                                                                        \
+                                                end
+
+#define party_member_options_gear_abusive(abusive_threshold, gear_msg, gear_normal_msg, gear_abusive_msg)                     \
+                                                if (gear_msg != 0) then begin                                                 \
+                                                   if (global_var(GVAR_PLAYER_REPUTATION) <= abusive_threshold) then begin    \
+                                                      NOption(gear_abusive_msg, DEF_PARTY_GEAR_NODE, 004);                    \
+                                                   end                                                                        \
+                                                   else begin                                                                 \
+                                                      NOption(gear_normal_msg, DEF_PARTY_GEAR_NODE, 004);                     \
+                                                   end                                                                        \
+                                                end
+
+#define party_member_options_wait_abusive(abusive_threshold, wait_msg, wait_normal_msg, wait_abusive_msg)                     \
+                                                if (wait_msg != 0) then begin                                                 \
+                                                   if (global_var(GVAR_PLAYER_REPUTATION) <= abusive_threshold) then begin    \
+                                                      NOption(wait_abusive_msg, DEF_PARTY_WAIT_NODE, 004);                    \
+                                                   end                                                                        \
+                                                   else begin                                                                 \
+                                                      NOption(wait_normal_msg, DEF_PARTY_WAIT_NODE, 004);                     \
+                                                   end                                                                        \
+                                                end
+
+#define party_member_options_nowait_abusive(abusive_threshold, nowait_msg, nowait_normal_msg, nowait_abusive_msg)             \
+                                             if (nowait_msg != 0) then begin                                                  \
+                                                if (global_var(GVAR_PLAYER_REPUTATION) <= abusive_threshold) then begin       \
+                                                   NOption(nowait_abusive_msg, DEF_PARTY_NOWAIT_NODE, 004);                   \
+                                                end                                                                           \
+                                                else begin                                                                    \
+                                                   NOption(nowait_normal_msg, DEF_PARTY_NOWAIT_NODE, 004);                    \
+                                                end                                                                           \
+                                             end
+
+#define party_member_options_end_abusive(abusive_threshold, end_msg, end_normal_msg, end_abusive_msg)                         \
+                                             if (end_msg != 0) then begin                                                     \
+                                                if (global_var(GVAR_PLAYER_REPUTATION) > abusive_threshold) then begin        \
+                                                   NOption(end_normal_msg, DEF_PARTY_END_NODE, 004);                          \
+                                                end                                                                           \
+                                                else begin                                                                    \
+                                                   NOption(end_abusive_msg, DEF_PARTY_END_NODE, 004);                         \
+                                                end                                                                           \
+                                             end
+
+#define party_member_options_stupid_abusive(abusive_threshold, stupid_msg, stupid_normal_msg)                                 \
+                                             if (stupid_msg != 0) then begin                                                  \
+                                                NOption(stupid_normal_msg, DEF_PARTY_STUPID_NODE, -003);                      \
+                                             end
+
+#define party_member_options_abusive(abusive_threshold, additional_first_option, heal_msg, heal_normal_msg, heal_abusive_msg, follow_msg, follow_normal_msg, follow_abusive_msg, gear_msg, gear_normal_msg, gear_abusive_msg, wait_msg, wait_normal_msg, wait_abusive_msg, nowait_msg, nowait_normal_msg, nowait_abusive_msg, end_msg, end_normal_msg, end_abusive_msg, stupid_msg, stupid_normal_msg)  \
+                                             if (party_is_waiting == false) then begin                                        \
+                                                if (local_var(LVAR_FOLLOW_DISTANCE) == 0) then begin                          \
+                                                   set_follow_medium;                                                         \
+                                                end                                                                           \
+                                                additional_first_option;                                                      \
+                                                party_member_options_heal_abusive(abusive_threshold, heal_msg, heal_normal_msg, heal_abusive_msg) \
+                                                party_member_options_follow_abusive(abusive_threshold, follow_msg, follow_normal_msg, follow_abusive_msg) \
+                                                party_member_options_gear_abusive(abusive_threshold, gear_msg, gear_normal_msg, gear_abusive_msg) \
+                                                party_member_options_wait_abusive(abusive_threshold, wait_msg, wait_normal_msg, wait_abusive_msg) \
+                                             end else party_member_options_nowait_abusive(abusive_threshold, nowait_msg, nowait_normal_msg, nowait_abusive_msg) \
+                                             party_member_options_end_abusive(abusive_threshold, end_msg, end_normal_msg, end_abusive_msg) \
+                                             party_member_options_stupid_abusive(abusive_threshold, stupid_msg, stupid_normal_msg) \
+                                             debug_msg("USED PARTY MEMBER OPTIONS")
+
 // this goes into node 1007
 #define party_follow_options(close_msg, med_msg, far_msg, follow_ignore_msg)                                                  \
                                              if (close_msg != 0) then begin                                                   \
@@ -734,6 +817,36 @@ variable tmp_hidden;
                                              if (gear_ignore_msg != 0) then begin                     \
                                                 NOption(gear_ignore_msg, PARTY_NODE_X, 004);          \
                                              end                                                      \
+                                             ndebug("USED PARTY GEAR OPTIONS")
+
+#define party_gear_options_abusive(abusive_threshold, weapon_use_msg, unarm_msg, unarm_normal_msg, unarm_abusive_msg, armor_msg, armor_normal_msg, armor_abusive_msg, gear_ignore_msg) \
+                                             if (weapon_use_msg != 0) then begin                                           \
+                                                NOption(weapon_use_msg, DEF_WEAPON_USE_NODE, 004);                         \
+                                             end                                                                           \
+                                             if (unarm_msg != 0) then begin                                                \
+                                                if (self_is_armed) then begin                                              \
+                                                   if (global_var(GVAR_PLAYER_REPUTATION) <= abusive_threshold) then begin \
+                                                      NOption(unarm_abusive_msg, DEF_UNARM_NODE, 004);                     \
+                                                   end                                                                     \
+                                                   else begin                                                              \
+                                                      NOption(unarm_normal_msg, DEF_UNARM_NODE, 004);                      \
+                                                   end                                                                     \
+                                                   NOption(unarm_msg, DEF_UNARM_NODE, 004);                                \
+                                                end                                                                        \
+                                             end                                                                           \
+                                             if (armor_msg != 0) then begin                                                \
+                                                if (self_wearing_armor) then begin                                         \
+                                                   if (global_var(GVAR_PLAYER_REPUTATION) <= abusive_threshold) then begin \
+                                                      NOption(armor_abusive_msg, DEF_UNARM_NODE, 004);                     \
+                                                   end                                                                     \
+                                                   else begin                                                              \
+                                                      NOption(armor_normal_msg, DEF_UNARM_NODE, 004);                      \
+                                                   end                                                                     \
+                                                end                                                                        \
+                                             end                                                                           \
+                                             if (gear_ignore_msg != 0) then begin                                          \
+                                                NOption(gear_ignore_msg, PARTY_NODE_X, 004);                               \
+                                             end                                                                           \
                                              ndebug("USED PARTY GEAR OPTIONS")
 
 #define party_member_default_options         party_member_options(def_heal_msg, def_follow_msg, def_gear_msg, def_wait_msg, def_nowait_msg, def_end_msg, def_stupid_msg)
@@ -777,11 +890,21 @@ variable tmp_hidden;
 // party member abandons party macros
 #define abandoned_party                      (local_var(LVAR_TEAM) == -1)
 #define set_self_abandon_party               if (obj_in_party(self_obj)) then begin                                                \
-                                                ndebug("abandon party: " + self_name);                                          \
+                                                ndebug("abandon party: " + self_name);                                             \
                                                 party_remove_self;                                                                 \
                                              end                                                                                   \
                                              if ((self_pid == PID_MIRIA) or (self_pid == PID_DAVIN)) then begin                    \
                                                 set_dude_was_married;                                                              \
+                                             end                                                                                   \
+                                             if ((local_var(LVAR_TEAM) != -1) and (self_team == false)) then begin                 \
+                                                 critter_add_trait(self_obj, TRAIT_OBJECT, OBJECT_TEAM_NUM, local_var(LVAR_TEAM)); \
+                                                 set_local_var(LVAR_TEAM, -1);                                                     \
+                                             end                                                                                   \
+                                             ndebug("" + obj_name(self_obj) + " has abandoned the party")
+
+#define set_self_abandon_party_no_spouse     if (obj_in_party(self_obj)) then begin                                                \
+                                                ndebug("abandon party: " + self_name);                                             \
+                                                party_remove_self;                                                                 \
                                              end                                                                                   \
                                              if ((local_var(LVAR_TEAM) != -1) and (self_team == false)) then begin                 \
                                                  critter_add_trait(self_obj, TRAIT_OBJECT, OBJECT_TEAM_NUM, local_var(LVAR_TEAM)); \

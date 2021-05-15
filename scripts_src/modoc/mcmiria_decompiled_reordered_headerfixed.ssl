@@ -1,0 +1,3111 @@
+/*
+	Copyright 1998-2003 Interplay Entertainment Corp.  All rights reserved.
+*/
+
+/*
+        Name: Miria
+        Location: Modoc
+        Description: Possible wife... Kinda the town ho'
+
+        Log: the following defines need to be changed:
+
+
+          Created: February 15, 1998
+
+           Updated:
+*/
+
+/* Include Files */
+
+#define set_default_party_follow             set_follow_close
+#define def_follow_msg                       mstr(1020)
+#define def_med_msg                          mstr(1005)
+#define def_far_msg                          mstr(1006)
+
+#define SCRIPT_REALNAME "mcmiria"
+#include "../headers/define.h"
+#include "../headers/newr1.h" //added by killap
+
+#define NAME                        SCRIPT_MCMIRIA
+#define TOWN_REP_VAR                GVAR_TOWN_REP_MODOC
+
+#include "../headers/command.h"
+#include "../headers/modoc.h"
+#include "../headers/modreact.h"
+
+/* Standard Script Procedures */
+procedure start;
+procedure critter_p_proc;
+procedure pickup_p_proc;
+procedure talk_p_proc;
+procedure destroy_p_proc;
+procedure look_at_p_proc;
+procedure description_p_proc;
+procedure use_skill_on_p_proc;
+procedure damage_p_proc;
+procedure map_enter_p_proc;
+procedure map_update_p_proc;
+procedure timed_event_p_proc;
+procedure combat_p_proc;
+procedure push_p_proc;
+
+// dialog nodes
+procedure Node000;
+procedure Node002;
+procedure Node010;
+procedure Node011;
+procedure Node012;
+procedure Node013;
+procedure Node014;
+procedure Node015;
+procedure Node016;
+procedure Node017;
+procedure Node018;
+procedure Node019;
+procedure Node020;
+procedure Node021;
+procedure Node022;
+procedure Node023;
+procedure Node024;
+procedure Node025;
+procedure Node026;
+procedure Node027;
+procedure Node100;
+// party member default nodes
+procedure Node1001;
+procedure Node1002;
+procedure Node1003;
+procedure Node1004;
+procedure Node1005;
+procedure Node1006;
+procedure Node1007;
+procedure Node1008;
+procedure Node1009;
+procedure Node1010;
+procedure Node1100;
+
+procedure Node999;                                      // This is the do nothing node
+procedure Node998;                                      // This Node is Always Combat
+procedure Node996;
+procedure Node995;
+
+#define LVAR_Hostile                      (4)
+#define LVAR_Here_Before                  (5)
+#define LVAR_Insulted                     (6)
+#define LVAR_Mode                         (7)
+#define LVAR_TEAM                         (8)
+#define LVAR_WAITING                      (9)
+#define LVAR_FOLLOW_DISTANCE              (10)
+#define LVAR_Home_Tile                    (13)
+#define LVAR_Gave_Weapon                  (14)
+#define LVAR_DID2100                      (15)
+#define LVAR_DID2600                      (16)
+#define LVAR_TALLY                        (17)
+#define LVAR_TALLY_TIMER                  (18)
+#define LVAR_HAVESEX                      (19)
+#define LVAR_ASK1TIME                     (20)
+#define LVAR_ASK2TIME                     (21)
+#define LVAR_ASK3TIME                     (22)
+#define LVAR_SEXTIME                      (23)
+#define LVAR_CITY_WANTS                   (24)
+
+#define insult_none                       (0)
+#define insult_light                      (1)
+#define insult_bad                        (2)
+
+#define insulted                          (local_var(LVAR_Insulted) > insult_none)
+#define insulted_light                    (local_var(LVAR_Insulted) > insult_light)
+#define insulted_bad                      (local_var(LVAR_Insulted) > insult_bad)
+
+#define mode_none                         (0)
+#define mode_rape                         (1)
+
+#define PARTY_NODE_X                      Node100
+
+#define miria_party_member_options    \
+           party_member_options_abusive(-500, NOption(10000,Node2000,004), def_heal_msg, 9210, 9211, def_follow_msg, 1020, 1020, def_gear_msg, 9220, 9221, def_wait_msg, 9230, 9231, def_nowait_msg, random(9200, 9201), random(9200, 9201), def_end_msg, random(9240, 9241), random(9241, 9242), def_stupid_msg, random(300, 303))
+#define miria_party_member_options_no_additional_option    \
+           party_member_options_abusive(-500, true, def_heal_msg, 9210, 9211, def_follow_msg, 1020, 1020, def_gear_msg, 9220, 9221, def_wait_msg, 9230, 9231, def_nowait_msg, random(9200, 9201), random(9200, 9201), def_end_msg, random(9240, 9241), random(9241, 9242), def_stupid_msg, random(300, 303))
+#define miria_party_follow_options    \
+           party_follow_options(g_mstr(10004), mstr(1005), mstr(1006), g_mstr(10010))
+#define miria_party_gear_options      \
+           party_gear_options_abusive(-500, def_weapon_use_msg, def_unarm_msg, 9250, 9251, def_armor_msg, 9260, 9261, def_ignore_gear_msg)
+
+// Begin Seraph's Code
+variable biff;
+variable gun;
+// End Seraph's Code
+variable did_node_11;
+variable did_node_12;
+variable did_node_14;
+variable Perform_Critter_Float;
+import variable modoc_jo_obj;
+
+procedure Node2000;
+procedure Node2100;
+procedure Node2200;
+procedure Node2300;
+procedure Node2400;
+procedure Node2500;
+procedure Node2501;
+procedure Node2502;
+procedure Node2503;
+procedure Node2504;
+procedure Node2600;
+procedure use_obj_on_p_proc;
+procedure location_floats;
+
+procedure start begin
+end
+
+procedure push_p_proc begin
+   if (party_member_obj(16777380) != 0) then begin
+      float_msg(self_obj, message_str(106, random(5100, 5103)), 8);
+   end
+   else begin
+      script_overrides;
+   end
+end
+
+procedure combat_p_proc begin
+   if (global_var(52) <= -1000) then begin
+      if (party_member_obj(obj_pid(self_obj)) != 0) then begin
+         debug_msg("abandon party: " + obj_name(self_obj));
+         party_remove(self_obj);
+      end
+      if (obj_pid(self_obj) == 16777380) then begin
+         debug_msg("start: set_dude_was_married");
+         if (global_var(6) == 1) then begin
+            set_global_var(449, global_var(6));
+            set_global_var(6, 0);
+         end
+         debug_msg("finished: set_dude_was_married");
+      end
+      if ((local_var(8) != -1) and (has_trait(1, self_obj, 6) == 0)) then begin
+         critter_add_trait(self_obj, 1, 6, local_var(8));
+         set_local_var(8, -1);
+      end
+      debug_msg("" + obj_name(self_obj) + " has abandoned the party");
+   end
+   if ((party_member_obj(16777380) != 0) == 0) then begin
+      if (has_trait(1, self_obj, 6) != 28) then begin
+         critter_add_trait(self_obj, 1, 6, 28);
+      end
+      if (fixed_param == 4) then begin
+         if (((obj_item_subtype(critter_inven_obj(self_obj, 1)) == 3) or (obj_item_subtype(critter_inven_obj(self_obj, 2)) == 3)) == 0) then begin
+            if (obj_is_carrying_obj_pid(self_obj, 4) > 0) then begin
+               wield_obj_critter(self_obj, obj_carrying_pid_obj(self_obj, 4));
+            end
+         end
+      end
+   end
+end
+
+procedure timed_event_p_proc begin
+   if (fixed_param == 1) then begin
+      if (not(combat_is_initialized) and has_trait(1, self_obj, 666)) then begin
+         if (party_member_obj(16777380) != 0) then begin
+            if (critter_state(party_member_obj(16777380)) bwand (4 bwor 8 bwor 16 bwor 32)) then begin
+               float_msg(self_obj, message_str(106, random(5004, 5005)), 8);
+            end
+            else begin
+               if (get_critter_stat(self_obj, 37)) then begin
+                  float_msg(self_obj, message_str(106, random(5000, 5001)), 8);
+               end
+               else begin
+                  if (get_poison(self_obj)) then begin
+                     float_msg(self_obj, message_str(106, random(5002, 5003)), 8);
+                  end
+                  else begin
+                     if (get_critter_stat(self_obj, 35) <= (get_critter_stat(self_obj, 7) * 3 / 4)) then begin
+                        float_msg(self_obj, message_str(106, random(5006, 5007)), 8);
+                     end
+                     else begin
+                        if (get_critter_stat(dude_obj, 34) == 1) then begin
+                           float_msg(self_obj, message_str(106, random(5500, 5521)), 8);
+                        end
+                        else begin
+                           float_msg(self_obj, message_str(106, random(5507, 5528)), 8);
+                        end
+                     end
+                  end
+               end
+            end
+         end
+      end
+      rm_timer_event(self_obj);
+      add_timer_event(self_obj, game_ticks(random(40, 50)), 1);
+   end
+   else begin
+      if (fixed_param == 666) then begin
+         float_msg(self_obj, " ", 8);
+         float_msg(dude_obj, " ", 8);
+         float_msg(self_obj, 0, 0);
+         float_msg(dude_obj, 0, 0);
+      end
+   end
+end
+
+procedure map_update_p_proc begin
+   if ((global_var(6) == 1) and (global_var(449) != 1)) then begin
+      if (local_var(18) < game_time) then begin
+         if (game_time < global_var(791)) then begin
+            set_local_var(17, local_var(17) + 1);
+         end
+         if (game_time < global_var(792)) then begin
+            set_local_var(17, local_var(17) + 1);
+         end
+         if (game_time < global_var(793)) then begin
+            set_local_var(17, local_var(17) + 1);
+         end
+         if (game_time < global_var(794)) then begin
+            set_local_var(17, local_var(17) + 1);
+         end
+         if ((game_time < global_var(791)) and (game_time < global_var(792)) and (game_time < global_var(793)) and (game_time < global_var(794))) then begin
+            set_local_var(17, local_var(17) + 1);
+         end
+         if ((game_time > global_var(791)) and (game_time > global_var(792)) and (game_time > global_var(793)) and (game_time > global_var(794))) then begin
+            set_local_var(17, local_var(17) - 1);
+         end
+         if ((global_var(22) > 0) or (global_var(23) > 0) or (global_var(24) > 0) or (global_var(25) > 0) or (global_var(296) != 0) or (global_var(26) > 0) or (global_var(295) > 0)) then begin
+            set_local_var(17, local_var(17) - 1);
+         end
+         if (global_var(230) > 0) then begin
+            set_local_var(17, local_var(17) - 1);
+         end
+         if (global_var(11) > 0) then begin
+            set_local_var(17, local_var(17) - 1);
+         end
+         if (global_var(0) < -500) then begin
+            set_local_var(17, local_var(17) - 1);
+         end
+         if (local_var(17) < 0) then begin
+            set_local_var(17, 0);
+         end
+         if (local_var(17) > 30) then begin
+            set_local_var(17, 30);
+         end
+         set_local_var(18, game_time + (2 * (30 * (24 * (60 * (60 * 10))))));
+         debug_msg("updated Miria planning timer");
+      end
+   end
+   if (combat_is_initialized == 0) then begin
+      if (anim_busy(self_obj) == 0) then begin
+         if (party_member_obj(obj_pid(self_obj)) != 0) then begin
+            if (metarule3(109, self_obj, 0, 0) == 1) then begin
+               if ((100 * get_critter_stat(self_obj, 35) / get_critter_stat(self_obj, 7)) <= 60) then begin
+                  global_temp := 1;
+                  if (obj_is_carrying_obj_pid(self_obj, 144)) then begin
+                     if ((global_temp == 0) and (combat_is_initialized == 0)) then begin
+                        gfade_out(600);
+                        if (0 > 0) then begin
+                           game_time_advance(0);
+                        end
+                        gfade_in(600);
+                     end
+                     PartyHealingItem := obj_carrying_pid_obj(self_obj, 144);
+                     use_obj_on_obj(PartyHealingItem, self_obj);
+                     debug_msg(obj_name(self_obj) + " used super stimpak.");
+                  end
+                  else begin
+                     if (obj_is_carrying_obj_pid(self_obj, 40)) then begin
+                        if ((global_temp == 0) and (combat_is_initialized == 0)) then begin
+                           gfade_out(600);
+                           if (0 > 0) then begin
+                              game_time_advance(0);
+                           end
+                           gfade_in(600);
+                        end
+                        use_obj_on_obj(obj_carrying_pid_obj(self_obj, 40), self_obj);
+                        debug_msg(obj_name(self_obj) + " used stimpak.");
+                     end
+                     else begin
+                        if (obj_is_carrying_obj_pid(self_obj, 273)) then begin
+                           if ((global_temp == 0) and (combat_is_initialized == 0)) then begin
+                              gfade_out(600);
+                              if (0 > 0) then begin
+                                 game_time_advance(0);
+                              end
+                              gfade_in(600);
+                           end
+                           use_obj_on_obj(obj_carrying_pid_obj(self_obj, 273), self_obj);
+                           debug_msg(obj_name(self_obj) + " used healing powder.");
+                        end
+                        else begin
+                           if (obj_is_carrying_obj_pid(self_obj, 91)) then begin
+                              if ((global_temp == 0) and (combat_is_initialized == 0)) then begin
+                                 gfade_out(600);
+                                 if (0 > 0) then begin
+                                    game_time_advance(0);
+                                 end
+                                 gfade_in(600);
+                              end
+                              use_obj_on_obj(obj_carrying_pid_obj(self_obj, 91), self_obj);
+                              debug_msg(obj_name(self_obj) + " used doctor's bag kit.");
+                           end
+                           else begin
+                              if (obj_is_carrying_obj_pid(self_obj, 47)) then begin
+                                 if ((global_temp == 0) and (combat_is_initialized == 0)) then begin
+                                    gfade_out(600);
+                                    if (0 > 0) then begin
+                                       game_time_advance(0);
+                                    end
+                                    gfade_in(600);
+                                 end
+                                 use_obj_on_obj(obj_carrying_pid_obj(self_obj, 47), self_obj);
+                                 debug_msg(obj_name(self_obj) + " used First Aid kit.");
+                              end
+                           end
+                        end
+                     end
+                  end
+               end
+            end
+            else begin
+               if (metarule3(109, self_obj, 0, 0) == 2) then begin
+                  if ((100 * get_critter_stat(self_obj, 35) / get_critter_stat(self_obj, 7)) <= 30) then begin
+                     global_temp := 1;
+                     if (obj_is_carrying_obj_pid(self_obj, 144)) then begin
+                        if ((global_temp == 0) and (combat_is_initialized == 0)) then begin
+                           gfade_out(600);
+                           if (0 > 0) then begin
+                              game_time_advance(0);
+                           end
+                           gfade_in(600);
+                        end
+                        PartyHealingItem := obj_carrying_pid_obj(self_obj, 144);
+                        use_obj_on_obj(PartyHealingItem, self_obj);
+                        debug_msg(obj_name(self_obj) + " used super stimpak.");
+                     end
+                     else begin
+                        if (obj_is_carrying_obj_pid(self_obj, 40)) then begin
+                           if ((global_temp == 0) and (combat_is_initialized == 0)) then begin
+                              gfade_out(600);
+                              if (0 > 0) then begin
+                                 game_time_advance(0);
+                              end
+                              gfade_in(600);
+                           end
+                           use_obj_on_obj(obj_carrying_pid_obj(self_obj, 40), self_obj);
+                           debug_msg(obj_name(self_obj) + " used stimpak.");
+                        end
+                        else begin
+                           if (obj_is_carrying_obj_pid(self_obj, 273)) then begin
+                              if ((global_temp == 0) and (combat_is_initialized == 0)) then begin
+                                 gfade_out(600);
+                                 if (0 > 0) then begin
+                                    game_time_advance(0);
+                                 end
+                                 gfade_in(600);
+                              end
+                              use_obj_on_obj(obj_carrying_pid_obj(self_obj, 273), self_obj);
+                              debug_msg(obj_name(self_obj) + " used healing powder.");
+                           end
+                           else begin
+                              if (obj_is_carrying_obj_pid(self_obj, 91)) then begin
+                                 if ((global_temp == 0) and (combat_is_initialized == 0)) then begin
+                                    gfade_out(600);
+                                    if (0 > 0) then begin
+                                       game_time_advance(0);
+                                    end
+                                    gfade_in(600);
+                                 end
+                                 use_obj_on_obj(obj_carrying_pid_obj(self_obj, 91), self_obj);
+                                 debug_msg(obj_name(self_obj) + " used doctor's bag kit.");
+                              end
+                              else begin
+                                 if (obj_is_carrying_obj_pid(self_obj, 47)) then begin
+                                    if ((global_temp == 0) and (combat_is_initialized == 0)) then begin
+                                       gfade_out(600);
+                                       if (0 > 0) then begin
+                                          game_time_advance(0);
+                                       end
+                                       gfade_in(600);
+                                    end
+                                    use_obj_on_obj(obj_carrying_pid_obj(self_obj, 47), self_obj);
+                                    debug_msg(obj_name(self_obj) + " used First Aid kit.");
+                                 end
+                              end
+                           end
+                        end
+                     end
+                  end
+               end
+               else begin
+                  if (metarule3(109, self_obj, 0, 0) == 3) then begin
+                     if ((100 * get_critter_stat(self_obj, 35) / get_critter_stat(self_obj, 7)) <= 50) then begin
+                        global_temp := 1;
+                        if (obj_is_carrying_obj_pid(self_obj, 144)) then begin
+                           if ((global_temp == 0) and (combat_is_initialized == 0)) then begin
+                              gfade_out(600);
+                              if (0 > 0) then begin
+                                 game_time_advance(0);
+                              end
+                              gfade_in(600);
+                           end
+                           PartyHealingItem := obj_carrying_pid_obj(self_obj, 144);
+                           use_obj_on_obj(PartyHealingItem, self_obj);
+                           debug_msg(obj_name(self_obj) + " used super stimpak.");
+                        end
+                        else begin
+                           if (obj_is_carrying_obj_pid(self_obj, 40)) then begin
+                              if ((global_temp == 0) and (combat_is_initialized == 0)) then begin
+                                 gfade_out(600);
+                                 if (0 > 0) then begin
+                                    game_time_advance(0);
+                                 end
+                                 gfade_in(600);
+                              end
+                              use_obj_on_obj(obj_carrying_pid_obj(self_obj, 40), self_obj);
+                              debug_msg(obj_name(self_obj) + " used stimpak.");
+                           end
+                           else begin
+                              if (obj_is_carrying_obj_pid(self_obj, 273)) then begin
+                                 if ((global_temp == 0) and (combat_is_initialized == 0)) then begin
+                                    gfade_out(600);
+                                    if (0 > 0) then begin
+                                       game_time_advance(0);
+                                    end
+                                    gfade_in(600);
+                                 end
+                                 use_obj_on_obj(obj_carrying_pid_obj(self_obj, 273), self_obj);
+                                 debug_msg(obj_name(self_obj) + " used healing powder.");
+                              end
+                              else begin
+                                 if (obj_is_carrying_obj_pid(self_obj, 91)) then begin
+                                    if ((global_temp == 0) and (combat_is_initialized == 0)) then begin
+                                       gfade_out(600);
+                                       if (0 > 0) then begin
+                                          game_time_advance(0);
+                                       end
+                                       gfade_in(600);
+                                    end
+                                    use_obj_on_obj(obj_carrying_pid_obj(self_obj, 91), self_obj);
+                                    debug_msg(obj_name(self_obj) + " used doctor's bag kit.");
+                                 end
+                                 else begin
+                                    if (obj_is_carrying_obj_pid(self_obj, 47)) then begin
+                                       if ((global_temp == 0) and (combat_is_initialized == 0)) then begin
+                                          gfade_out(600);
+                                          if (0 > 0) then begin
+                                             game_time_advance(0);
+                                          end
+                                          gfade_in(600);
+                                       end
+                                       use_obj_on_obj(obj_carrying_pid_obj(self_obj, 47), self_obj);
+                                       debug_msg(obj_name(self_obj) + " used First Aid kit.");
+                                    end
+                                 end
+                              end
+                           end
+                        end
+                     end
+                  end
+                  else begin
+                     if (metarule3(109, self_obj, 0, 0) == 4) then begin
+                        if ((100 * get_critter_stat(self_obj, 35) / get_critter_stat(self_obj, 7)) <= 50) then begin
+                           global_temp := 1;
+                           if (obj_is_carrying_obj_pid(self_obj, 144)) then begin
+                              if ((global_temp == 0) and (combat_is_initialized == 0)) then begin
+                                 gfade_out(600);
+                                 if (0 > 0) then begin
+                                    game_time_advance(0);
+                                 end
+                                 gfade_in(600);
+                              end
+                              PartyHealingItem := obj_carrying_pid_obj(self_obj, 144);
+                              use_obj_on_obj(PartyHealingItem, self_obj);
+                              debug_msg(obj_name(self_obj) + " used super stimpak.");
+                           end
+                           else begin
+                              if (obj_is_carrying_obj_pid(self_obj, 40)) then begin
+                                 if ((global_temp == 0) and (combat_is_initialized == 0)) then begin
+                                    gfade_out(600);
+                                    if (0 > 0) then begin
+                                       game_time_advance(0);
+                                    end
+                                    gfade_in(600);
+                                 end
+                                 use_obj_on_obj(obj_carrying_pid_obj(self_obj, 40), self_obj);
+                                 debug_msg(obj_name(self_obj) + " used stimpak.");
+                              end
+                              else begin
+                                 if (obj_is_carrying_obj_pid(self_obj, 273)) then begin
+                                    if ((global_temp == 0) and (combat_is_initialized == 0)) then begin
+                                       gfade_out(600);
+                                       if (0 > 0) then begin
+                                          game_time_advance(0);
+                                       end
+                                       gfade_in(600);
+                                    end
+                                    use_obj_on_obj(obj_carrying_pid_obj(self_obj, 273), self_obj);
+                                    debug_msg(obj_name(self_obj) + " used healing powder.");
+                                 end
+                                 else begin
+                                    if (obj_is_carrying_obj_pid(self_obj, 91)) then begin
+                                       if ((global_temp == 0) and (combat_is_initialized == 0)) then begin
+                                          gfade_out(600);
+                                          if (0 > 0) then begin
+                                             game_time_advance(0);
+                                          end
+                                          gfade_in(600);
+                                       end
+                                       use_obj_on_obj(obj_carrying_pid_obj(self_obj, 91), self_obj);
+                                       debug_msg(obj_name(self_obj) + " used doctor's bag kit.");
+                                    end
+                                    else begin
+                                       if (obj_is_carrying_obj_pid(self_obj, 47)) then begin
+                                          if ((global_temp == 0) and (combat_is_initialized == 0)) then begin
+                                             gfade_out(600);
+                                             if (0 > 0) then begin
+                                                game_time_advance(0);
+                                             end
+                                             gfade_in(600);
+                                          end
+                                          use_obj_on_obj(obj_carrying_pid_obj(self_obj, 47), self_obj);
+                                          debug_msg(obj_name(self_obj) + " used First Aid kit.");
+                                       end
+                                    end
+                                 end
+                              end
+                           end
+                        end
+                     end
+                  end
+               end
+            end
+         end
+      end
+   end
+end
+
+procedure map_enter_p_proc begin
+   if ((cur_map_index == 19) or (cur_map_index == 37) or (cur_map_index == 38)) then begin
+      if ((elevation(self_obj) != elevation(dude_obj)) and (local_var(9) != 0)) then begin
+         move_to(self_obj, tile_num(self_obj), elevation(dude_obj));
+      end
+   end
+   if (global_var(6) == 1) then begin
+      if (party_member_obj(16777380) != 0) then begin
+         Perform_Critter_Float := 1;
+         rm_timer_event(self_obj);
+         add_timer_event(self_obj, game_ticks(random(40, 50)), 1);
+      end
+      else begin
+         Perform_Critter_Float := 0;
+      end
+   end
+   critter_add_trait(self_obj, 1, 6, 28);
+   if ((party_member_obj(16777380) != 0) == 0) then begin
+      if (cur_map_index == 18) then begin
+         if (metarule(14, 0)) then begin
+            set_local_var(13, tile_num(self_obj));
+         end
+         critter_attempt_placement(self_obj, local_var(13), elevation(dude_obj));
+      end
+   end
+end
+
+procedure critter_p_proc begin
+   variable LVar0 := 0;
+   if ((cur_map_index == 54) and (map_var(2) == party_member_obj(16777380))) then begin
+      LVar0 := get_critter_stat(self_obj, 0);
+      if (LVar0 == get_critter_stat(self_obj, 0)) then begin
+         use_obj_on_obj(create_object_sid(482, 0, 0, -1), self_obj);
+      end
+      if ((get_critter_stat(self_obj, 0) == (LVar0 + 1)) or (get_critter_stat(self_obj, 0) == 10)) then begin
+         set_map_var(2, 0);
+         LVar0 := 0;
+      end
+   end
+   if (Perform_Critter_Float == 1) then begin
+      Perform_Critter_Float := 0;
+      call location_floats();
+   end
+   if (party_member_obj(16777380) != 0) then begin
+      if ((global_var(52) <= -1000) == 0) then begin
+         if (((local_var(9) != 0) == 0) and ((global_var(398) != 0) == 0)) then begin
+            if (local_var(10) == 0) then begin
+               set_local_var(10, 6);
+            end
+            if (tile_distance_objs(self_obj, dude_obj) > (3 * local_var(10) / 2)) then begin
+               if (anim_busy(self_obj) == 0) then begin
+                  dest_tile := tile_num_in_direction(tile_num_in_direction(tile_num(dude_obj), rotation_to_tile(tile_num(dude_obj), tile_num(self_obj)), local_var(10)), random(0, 5), random(0, 2));
+                  if (tile_distance_objs(self_obj, dude_obj) > (3 * local_var(10) / 2 * 2)) then begin
+                     animate_move_obj_to_tile(self_obj, dest_tile, 1);
+                  end
+                  else begin
+                     animate_move_obj_to_tile(self_obj, dest_tile, 0);
+                  end
+               end
+               else begin
+                  if (tile_distance(tile_num(self_obj), tile_num(dude_obj)) < tile_distance(tile_num(self_obj), dest_tile)) then begin
+                     reg_anim_func(2, self_obj);
+                  end
+               end
+            end
+         end
+      end
+      else begin
+         if (party_member_obj(obj_pid(self_obj)) != 0) then begin
+            debug_msg("abandon party: " + obj_name(self_obj));
+            party_remove(self_obj);
+         end
+         if (obj_pid(self_obj) == 16777380) then begin
+            debug_msg("start: set_dude_was_married");
+            if (global_var(6) == 1) then begin
+               debug_msg("   GVAR_PLAYER_WAS_MARRIED before == " + global_var(449));
+               set_global_var(449, global_var(6));
+               debug_msg("   GVAR_PLAYER_WAS_MARRIED after == " + global_var(449));
+               set_global_var(6, 0);
+            end
+            debug_msg("finished: set_dude_was_married");
+         end
+         if ((local_var(8) != -1) and (has_trait(1, self_obj, 6) == 0)) then begin
+            critter_add_trait(self_obj, 1, 6, local_var(8));
+            set_local_var(8, -1);
+         end
+         debug_msg("" + obj_name(self_obj) + " has abandoned the party");
+      end
+   end
+   else begin
+      if (((global_var(291) - (global_var(291) % 100)) == 200) or ((global_var(291) - (global_var(291) % 100)) == 300)) then begin
+         if ((global_var(291) % 100) == 5) then begin
+            reg_anim_func(2, self_obj);
+            move_to(self_obj, (21504 * ((global_var(291) - (global_var(291) % 100)) == 200)) + (22705 * ((global_var(291) - (global_var(291) % 100)) == 300)), elevation(dude_obj));
+            anim(self_obj, 1000, rotation_to_tile(tile_num(self_obj), tile_num(modoc_jo_obj)));
+         end
+         else begin
+            if ((global_var(291) - (global_var(291) % 100)) == 200) then begin
+               if ((global_var(291) % 100) == 27) then begin
+                  if ((party_member_obj(16777380) != 0) == 0) then begin
+                     if ((critter_state(self_obj) bwand 1) == 0) then begin
+                        if (local_var(10) == 0) then begin
+                           set_local_var(10, 3);
+                        end
+                        set_local_var(9, 0);
+                        if (has_trait(1, self_obj, 6) != 0) then begin
+                           set_local_var(8, has_trait(1, self_obj, 6));
+                        end
+                        critter_add_trait(self_obj, 1, 6, 0);
+                        party_add(self_obj);
+                     end
+                     debug_msg("join party: " + obj_name(self_obj));
+                     if (((global_var(6) != 0) == 0) and ((global_var(449) != 0) == 0)) then begin
+                        if (106 == 99) then begin
+                           set_global_var(6, 2);
+                        end
+                        else begin
+                           if (106 == 106) then begin
+                              set_global_var(6, 1);
+                           end
+                        end
+                     end
+                     debug_msg("set_dude_married");
+                     restock_obj := create_object_sid(40, 0, 0, -1);
+                     add_mult_objs_to_inven(self_obj, restock_obj, 4);
+                     restock_obj := create_object_sid(49, 0, 0, -1);
+                     add_mult_objs_to_inven(self_obj, restock_obj, 2);
+                  end
+               end
+               else begin
+                  if (game_time >= global_var(290)) then begin
+                     if ((global_var(291) % 100) == 2) then begin
+                        float_msg(self_obj, message_str(106, 400 + (20 * ((global_var(297) bwand 131072) != 0))), 8 + ((7 - 8) * has_trait(0, dude_obj, 22)));
+                        float_msg(dude_obj, message_str(106, 401), 8);
+                        set_global_var(290, game_time + (3 * 10));
+                        add_timer_event(self_obj, game_ticks(3) - 2, 666);
+                        set_global_var(291, global_var(291) - (global_var(291) % 100) + 3);
+                        debug_msg("\n SET_STAGE_EVENT == " + global_var(291) + " in script " + obj_name(self_obj));
+                     end
+                     else begin
+                        if ((global_var(291) % 100) == 17) then begin
+                           float_msg(dude_obj, message_str(106, 410), 8);
+                           set_global_var(290, game_time + (3 * 10));
+                           add_timer_event(self_obj, game_ticks(3) - 2, 666);
+                           set_global_var(291, global_var(291) - (global_var(291) % 100) + 18);
+                           debug_msg("\n SET_STAGE_EVENT == " + global_var(291) + " in script " + obj_name(self_obj));
+                        end
+                        else begin
+                           if ((global_var(291) % 100) == 19) then begin
+                              float_msg(dude_obj, message_str(106, 411), 8);
+                              set_global_var(290, game_time + (3 * 10));
+                              add_timer_event(self_obj, game_ticks(3) - 2, 666);
+                              set_global_var(291, global_var(291) - (global_var(291) % 100) + 20);
+                              debug_msg("\n SET_STAGE_EVENT == " + global_var(291) + " in script " + obj_name(self_obj));
+                           end
+                           else begin
+                              if ((global_var(291) % 100) == 21) then begin
+                                 float_msg(self_obj, message_str(106, 402), 8 + ((9 - 8) * has_trait(0, dude_obj, 22)));
+                                 set_global_var(290, game_time + (3 * 10));
+                                 add_timer_event(self_obj, game_ticks(3) - 2, 666);
+                                 set_global_var(291, global_var(291) - (global_var(291) % 100) + 22);
+                                 debug_msg("\n SET_STAGE_EVENT == " + global_var(291) + " in script " + obj_name(self_obj));
+                              end
+                              else begin
+                                 if ((global_var(291) % 100) == 23) then begin
+                                    float_msg(dude_obj, message_str(106, 412), 8);
+                                    set_global_var(290, game_time + (3 * 10));
+                                    add_timer_event(self_obj, game_ticks(3) - 2, 666);
+                                    set_global_var(291, global_var(291) - (global_var(291) % 100) + 24);
+                                    debug_msg("\n SET_STAGE_EVENT == " + global_var(291) + " in script " + obj_name(self_obj));
+                                 end
+                                 else begin
+                                    if ((global_var(291) % 100) == 25) then begin
+                                       float_msg(dude_obj, message_str(106, 413), 8);
+                                       set_global_var(290, game_time + (3 * 10));
+                                       add_timer_event(self_obj, game_ticks(3) - 2, 666);
+                                       set_global_var(291, global_var(291) - (global_var(291) % 100) + 26);
+                                       debug_msg("\n SET_STAGE_EVENT == " + global_var(291) + " in script " + obj_name(self_obj));
+                                    end
+                                 end
+                              end
+                           end
+                        end
+                     end
+                  end
+               end
+            end
+         end
+      end
+      else begin
+         if ((global_var(291) - (global_var(291) % 100)) == 100) then begin
+            if (obj_can_see_obj(self_obj, dude_obj)) then begin
+               if ((global_var(291) % 100) == 1) then begin
+                  gfade_in(1);
+                  float_msg(self_obj, message_str(106, 250 + (10 * (get_critter_stat(dude_obj, 34) == 1)) + (20 * ((global_var(297) bwand 131072) != 0))), 8 + ((7 - 8) * has_trait(0, dude_obj, 22)));
+                  set_global_var(290, game_time + (3 * 10));
+                  add_timer_event(self_obj, game_ticks(3) - 2, 666);
+                  set_global_var(291, global_var(291) - (global_var(291) % 100) + 2);
+                  debug_msg("\n SET_STAGE_EVENT == " + global_var(291) + " in script " + obj_name(self_obj));
+               end
+            end
+         end
+         else begin
+            if (obj_can_see_obj(self_obj, dude_obj)) then begin
+               if ((local_var(4) != 0) or (global_var(52) <= -1000)) then begin
+                  if (critter_is_fleeing(self_obj)) then begin
+                     if (anim_busy(self_obj) == 0) then begin
+                        if ((tile_distance_objs(self_obj, dude_obj) < 8) or obj_can_see_obj(self_obj, dude_obj)) then begin
+                           if (anim_busy(self_obj) == 0) then begin
+                              global_temp := rotation_to_tile(tile_num(dude_obj), tile_num(self_obj));
+                              animate_move_obj_to_tile(self_obj, tile_num_in_direction(tile_num(self_obj), global_temp, random(3, 10)), 1);
+                              global_temp := (global_temp + 1) % 6;
+                              while ((anim_busy(self_obj) == 0) and (global_temp != rotation_to_tile(tile_num(dude_obj), tile_num(self_obj)))) do begin
+                                 debug_msg("flee loop: rot == " + global_temp);
+                                 animate_move_obj_to_tile(self_obj, tile_num_in_direction(tile_num(self_obj), global_temp, random(3, 10)), 1);
+                                 global_temp := (global_temp + 1) % 6;
+                              end
+                           end
+                        end
+                     end
+                  end
+                  else begin
+                     attack_complex(dude_obj, 0, 1, 0, 0, 30000, 0, 0);
+                  end
+               end
+            end
+            if (cur_map_index == 18) then begin
+               if (tile_num(self_obj) != local_var(13)) then begin
+                  if ((tile_num(self_obj) != local_var(13)) and (local_var(13) != 0)) then begin
+                     if ((dest_tile == local_var(13)) and (step_tile < 0)) then begin
+                        step_tile := step_tile + 1;
+                        debug_msg("step_tile: " + step_tile);
+                     end
+                     else begin
+                        if (anim_busy(self_obj) == 0) then begin
+                           dest_tile := local_var(13);
+                           step_tile := local_var(13);
+                           animate_move_obj_to_tile(self_obj, step_tile, 0);
+                           while ((anim_busy(self_obj) == 0) and (tile_distance(tile_num(self_obj), local_var(13)) >= tile_distance(step_tile, local_var(13)))) do begin
+                              debug_msg("rot: " + rotation_to_tile(step_tile, tile_num(self_obj)));
+                              step_tile := tile_num_in_direction(step_tile, rotation_to_tile(step_tile, tile_num(self_obj)), 5 % tile_distance(step_tile, tile_num(self_obj)));
+                              debug_msg("step_var: " + step_tile);
+                              animate_move_obj_to_tile(self_obj, step_tile, 0);
+                           end
+                           if (anim_busy(self_obj) == 0) then begin
+                              if (metarule3(106, tile_num_in_direction(tile_num(self_obj), has_trait(1, self_obj, 10), 1), elevation(self_obj), 0) != 0) then begin
+                                 if (anim_busy(self_obj) == 0) then begin
+                                    global_temp := rotation_to_tile(tile_num_in_direction(tile_num(self_obj), rotation_to_tile(tile_num_in_direction(tile_num(self_obj), has_trait(1, self_obj, 10), 1), tile_num(self_obj)), 1), tile_num(self_obj));
+                                    animate_move_obj_to_tile(self_obj, tile_num_in_direction(tile_num(self_obj), global_temp, random(2, 5)), 0);
+                                    global_temp := (global_temp + 1) % 6;
+                                    while ((anim_busy(self_obj) == 0) and (global_temp != rotation_to_tile(tile_num_in_direction(tile_num(self_obj), rotation_to_tile(tile_num_in_direction(tile_num(self_obj), has_trait(1, self_obj, 10), 1), tile_num(self_obj)), 1), tile_num(self_obj)))) do begin
+                                       debug_msg("flee loop: rot == " + global_temp);
+                                       animate_move_obj_to_tile(self_obj, tile_num_in_direction(tile_num(self_obj), global_temp, random(2, 5)), 0);
+                                       global_temp := (global_temp + 1) % 6;
+                                    end
+                                 end
+                              end
+                              else begin
+                                 step_tile := -10;
+                              end
+                           end
+                        end
+                        else begin
+                           if (tile_distance(tile_num(self_obj), local_var(13)) < tile_distance(dest_tile, local_var(13))) then begin
+                              reg_anim_func(2, self_obj);
+                           end
+                        end
+                     end
+                  end
+               end
+            end
+         end
+      end
+   end
+   return 0;
+   LVar0 := 0;
+end
+
+procedure damage_p_proc begin
+   if (source_obj == dude_obj) then begin
+      if (((global_var(291) - (global_var(291) % 100)) == 100) or (((global_var(291) - (global_var(291) % 100)) == 200) or ((global_var(291) - (global_var(291) % 100)) == 300))) then begin
+         set_global_var(291, 0);
+      end
+      if (party_member_obj(obj_pid(self_obj)) != 0) then begin
+         debug_msg("abandon party: " + obj_name(self_obj));
+         party_remove(self_obj);
+      end
+      if (obj_pid(self_obj) == 16777380) then begin
+         debug_msg("start: set_dude_was_married");
+         if ((global_var(6) != 0) and ((global_var(449) != 0) == 0)) then begin
+            debug_msg("   GVAR_PLAYER_WAS_MARRIED before == " + global_var(449));
+            set_global_var(449, global_var(6));
+            debug_msg("   GVAR_PLAYER_WAS_MARRIED after == " + global_var(449));
+            set_global_var(6, 0);
+         end
+         debug_msg("finished: set_dude_was_married");
+      end
+      if ((local_var(8) != -1) and (has_trait(1, self_obj, 6) == 0)) then begin
+         critter_add_trait(self_obj, 1, 6, local_var(8));
+         set_local_var(8, -1);
+      end
+      debug_msg("" + obj_name(self_obj) + " has abandoned the party");
+      call Node998();
+      if ((cur_map_index == 18) or (cur_map_index == 19)) then begin
+         if ((global_var(52) <= -1000) == 0) then begin
+            set_global_var(52, -1000);
+         end
+      end
+   end
+end
+
+procedure pickup_p_proc begin
+   if (source_obj == dude_obj) then begin
+      if (((party_member_obj(16777380) != 0) == 0) or (global_var(6) != 1)) then begin
+         call Node998();
+      end
+   end
+end
+
+procedure talk_p_proc begin
+   variable LVar0 := 0;
+   LVar0 := critter_inven_obj(self_obj, 0);
+   set_local_var(19, 0);
+   if ((global_var(52) <= -1000) == 0) then begin
+      if (((global_var(291) - (global_var(291) % 100)) == 200) or ((global_var(291) - (global_var(291) % 100)) == 300)) then begin
+         if ((global_var(291) % 100) == 3) then begin
+            float_msg(self_obj, message_str(106, 450 + (20 * ((global_var(297) bwand 131072) != 0))), 8 + ((7 - 8) * has_trait(0, dude_obj, 22)));
+         end
+      end
+      else begin
+         if ((global_var(291) - (global_var(291) % 100)) == 100) then begin
+            float_msg(self_obj, message_str(106, 251), 8 + ((7 - 8) * has_trait(0, dude_obj, 22)));
+         end
+         else begin
+            script_overrides;
+            if (local_var(6) > 0) then begin
+               float_msg(self_obj, message_str(106, 150 + (get_critter_stat(dude_obj, 34) == 0)), 8);
+            end
+            else begin
+               if ((get_critter_stat(self_obj, 34) == 0) and (global_var(6) == 1) or ((get_critter_stat(self_obj, 34) == 1) and (global_var(6) == 2)) and (global_var(6) != 0) or (global_var(449) != 0)) then begin
+                  if ((global_var(297) bwand 131072) != 0) then begin
+                     float_msg(self_obj, message_str(106, 500), 8);
+                  end
+                  else begin
+                     float_msg(self_obj, message_str(106, 152 + (get_critter_stat(dude_obj, 34) == 1)), 8);
+                  end
+               end
+               else begin
+                  did_node_14 := 0;
+                  start_gdialog(106, self_obj, 4, -1, -1);
+                  gsay_start;
+                  if ((party_member_obj(16777380) != 0) or (local_var(9) != 0)) then begin
+                     call Node100();
+                  end
+                  else begin
+                     call Node000();
+                  end
+                  gsay_end;
+                  end_dialogue;
+               end
+            end
+            set_local_var(5, local_var(5) + 1);
+         end
+      end
+   end
+   else begin
+      if (party_member_obj(obj_pid(self_obj)) != 0) then begin
+         debug_msg("abandon party: " + obj_name(self_obj));
+         party_remove(self_obj);
+      end
+      if (obj_pid(self_obj) == 16777380) then begin
+         debug_msg("start: set_dude_was_married");
+         if (global_var(6) == 1) then begin
+            debug_msg("   GVAR_PLAYER_WAS_MARRIED before == " + global_var(449));
+            set_global_var(449, global_var(6));
+            debug_msg("   GVAR_PLAYER_WAS_MARRIED after == " + global_var(449));
+            set_global_var(6, 0);
+         end
+         debug_msg("finished: set_dude_was_married");
+      end
+      if ((local_var(8) != -1) and (has_trait(1, self_obj, 6) == 0)) then begin
+         critter_add_trait(self_obj, 1, 6, local_var(8));
+         set_local_var(8, -1);
+      end
+      debug_msg("" + obj_name(self_obj) + " has abandoned the party");
+      call Node998();
+      if (critter_is_fleeing(self_obj)) then begin
+         if (anim_busy(self_obj) == 0) then begin
+            if ((tile_distance_objs(self_obj, dude_obj) < 8) or obj_can_see_obj(self_obj, dude_obj)) then begin
+               if (anim_busy(self_obj) == 0) then begin
+                  global_temp := rotation_to_tile(tile_num(dude_obj), tile_num(self_obj));
+                  animate_move_obj_to_tile(self_obj, tile_num_in_direction(tile_num(self_obj), global_temp, random(3, 10)), 1);
+                  global_temp := (global_temp + 1) % 6;
+                  while ((anim_busy(self_obj) == 0) and (global_temp != rotation_to_tile(tile_num(dude_obj), tile_num(self_obj)))) do begin
+                     debug_msg("flee loop: rot == " + global_temp);
+                     animate_move_obj_to_tile(self_obj, tile_num_in_direction(tile_num(self_obj), global_temp, random(3, 10)), 1);
+                     global_temp := (global_temp + 1) % 6;
+                  end
+               end
+            end
+         end
+      end
+      else begin
+         attack_complex(dude_obj, 0, 1, 0, 0, 30000, 0, 0);
+      end
+   end
+   if (critter_inven_obj(self_obj, 0) != LVar0) then begin
+      if (critter_inven_obj(self_obj, 0) == 0) then begin
+         metarule3(107, self_obj, 16777252, 0);
+         float_msg(self_obj, message_str(106, random(6000, 6001)), 8);
+      end
+      else begin
+         if ((obj_pid(critter_inven_obj(self_obj, 0)) == 1) or (obj_pid(critter_inven_obj(self_obj, 0)) == 379)) then begin
+            metarule3(107, self_obj, 16777221, 0);
+            float_msg(self_obj, message_str(106, random(6005, 6006)), 8);
+         end
+         else begin
+            if ((obj_pid(critter_inven_obj(self_obj, 0)) == 232) or (obj_pid(critter_inven_obj(self_obj, 0)) == 3)) then begin
+               metarule3(107, self_obj, 16777217, 0);
+               float_msg(self_obj, message_str(106, random(6025, 6026)), 8);
+            end
+            else begin
+               if ((obj_pid(critter_inven_obj(self_obj, 0)) == 349) or (obj_pid(critter_inven_obj(self_obj, 0)) == 348)) then begin
+                  metarule3(107, self_obj, 16777287, 0);
+                  float_msg(self_obj, message_str(106, random(6030, 6031)), 8);
+               end
+               else begin
+                  if ((obj_pid(critter_inven_obj(self_obj, 0)) == 240) or (obj_pid(critter_inven_obj(self_obj, 0)) == 380) or (obj_pid(critter_inven_obj(self_obj, 0)) == 2)) then begin
+                     metarule3(107, self_obj, 16777223, 0);
+                     float_msg(self_obj, message_str(106, random(6015, 6016)), 8);
+                  end
+                  else begin
+                     if ((obj_pid(critter_inven_obj(self_obj, 0)) == 74) or (obj_pid(critter_inven_obj(self_obj, 0)) == 265)) then begin
+                        metarule3(107, self_obj, 16777222, 0);
+                        float_msg(self_obj, message_str(106, random(6010, 6011)), 8);
+                     end
+                     else begin
+                        if ((obj_pid(critter_inven_obj(self_obj, 0)) == 239) or (obj_pid(critter_inven_obj(self_obj, 0)) == 17) or (obj_pid(critter_inven_obj(self_obj, 0)) == 381)) then begin
+                           metarule3(107, self_obj, 16777219, 0);
+                           float_msg(self_obj, message_str(106, random(6020, 6021)), 8);
+                        end
+                        else begin
+                           if ((obj_pid(critter_inven_obj(self_obj, 0)) == 524) or (obj_pid(critter_inven_obj(self_obj, 0)) == 113)) then begin
+                              metarule3(107, self_obj, 16777218, 0);
+                              float_msg(self_obj, message_str(106, random(6035, 6036)), 8);
+                           end
+                           else begin
+                              if (obj_pid(critter_inven_obj(self_obj, 0)) == 554) then begin
+                                 metarule3(107, self_obj, 16777320, 0);
+                                 float_msg(self_obj, message_str(106, random(6040, 6041)), 8);
+                              end
+                           end
+                        end
+                     end
+                  end
+               end
+            end
+         end
+      end
+      restock_obj := critter_inven_obj(self_obj, 1);
+      debug_msg("armour pid == " + obj_pid(restock_obj));
+      rm_obj_from_inven(self_obj, restock_obj);
+      add_obj_to_inven(self_obj, restock_obj);
+   end
+   if (local_var(19) != 0) then begin
+      call Node2502();
+      set_local_var(19, 0);
+   end
+   return 0;
+   LVar0 := 0;
+end
+
+procedure destroy_p_proc begin
+   debug_msg("start: set_dude_was_married");
+   if ((global_var(6) != 0) and ((global_var(449) != 0) == 0)) then begin
+      debug_msg("   GVAR_PLAYER_WAS_MARRIED before == " + global_var(449));
+      set_global_var(449, global_var(6));
+      debug_msg("   GVAR_PLAYER_WAS_MARRIED after == " + global_var(449));
+      set_global_var(6, 0);
+   end
+   debug_msg("finished: set_dude_was_married");
+   if (source_obj == dude_obj) then begin
+      set_global_var(5, global_var(5) + 1);
+      if (((global_var(4) + global_var(5)) >= 25) and ((global_var(4) > (3 * global_var(5))) or (global_var(2) == 1)) and (global_var(1) == 0)) then begin
+         set_global_var(2, 1);
+         set_global_var(3, 0);
+      end
+      if (metarule(51, self_obj) == 2) then begin
+         if (source_obj == dude_obj) then begin
+            set_global_var(2, 0);
+            set_global_var(1, global_var(1) + 1);
+            set_global_var(0, global_var(0) + -15);
+            debug_msg("Player gains " + -15 + " Karma Points.");
+            set_global_var(37, 0);
+            set_global_var(38, 0);
+            set_global_var(39, 0);
+            set_global_var(40, 0);
+            set_global_var(41, 0);
+            set_global_var(42, 0);
+            set_global_var(43, 0);
+            set_global_var(44, 0);
+            set_global_var(45, 0);
+            if (global_var(0) >= 1000) then begin
+               set_global_var(37, 1);
+            end
+            else begin
+               if (global_var(0) >= 750) then begin
+                  set_global_var(38, 1);
+               end
+               else begin
+                  if (global_var(0) >= 500) then begin
+                     set_global_var(39, 1);
+                  end
+                  else begin
+                     if (global_var(0) >= 250) then begin
+                        set_global_var(40, 1);
+                     end
+                     else begin
+                        if (global_var(0) > -250) then begin
+                           set_global_var(41, 1);
+                        end
+                        else begin
+                           if (global_var(0) > -500) then begin
+                              set_global_var(42, 1);
+                           end
+                           else begin
+                              if (global_var(0) > -750) then begin
+                                 set_global_var(43, 1);
+                              end
+                              else begin
+                                 if (global_var(0) > -1000) then begin
+                                    set_global_var(44, 1);
+                                 end
+                                 else begin
+                                    set_global_var(45, 1);
+                                 end
+                              end
+                           end
+                        end
+                     end
+                  end
+               end
+            end
+            set_global_var(52, global_var(52) + -8);
+            debug_msg("Added " + -8 + " to Town Rep");
+         end
+      end
+      if (((global_var(4) + global_var(5)) >= 25) and ((global_var(5) > (2 * global_var(4))) or (global_var(3) == 1))) then begin
+         set_global_var(3, 1);
+         set_global_var(2, 0);
+      end
+      set_global_var(0, global_var(0) + -10);
+      debug_msg("Player gains " + -10 + " Karma Points.");
+      set_global_var(37, 0);
+      set_global_var(38, 0);
+      set_global_var(39, 0);
+      set_global_var(40, 0);
+      set_global_var(41, 0);
+      set_global_var(42, 0);
+      set_global_var(43, 0);
+      set_global_var(44, 0);
+      set_global_var(45, 0);
+      if (global_var(0) >= 1000) then begin
+         set_global_var(37, 1);
+      end
+      else begin
+         if (global_var(0) >= 750) then begin
+            set_global_var(38, 1);
+         end
+         else begin
+            if (global_var(0) >= 500) then begin
+               set_global_var(39, 1);
+            end
+            else begin
+               if (global_var(0) >= 250) then begin
+                  set_global_var(40, 1);
+               end
+               else begin
+                  if (global_var(0) > -250) then begin
+                     set_global_var(41, 1);
+                  end
+                  else begin
+                     if (global_var(0) > -500) then begin
+                        set_global_var(42, 1);
+                     end
+                     else begin
+                        if (global_var(0) > -750) then begin
+                           set_global_var(43, 1);
+                        end
+                        else begin
+                           if (global_var(0) > -1000) then begin
+                              set_global_var(44, 1);
+                           end
+                           else begin
+                              set_global_var(45, 1);
+                           end
+                        end
+                     end
+                  end
+               end
+            end
+         end
+      end
+      set_global_var(52, global_var(52) + -5);
+      debug_msg("Added " + -5 + " to Town Rep");
+   end
+end
+
+procedure look_at_p_proc begin
+   script_overrides;
+   if (local_var(5) > 0) then begin
+      if ((global_var(6) != 1) and (global_var(449) != 1)) then begin
+         display_msg(message_str(106, 101));
+      end
+      else begin
+         if (global_var(6) == 1) then begin
+            display_msg(message_str(106, 103));
+         end
+         else begin
+            if ((global_var(6) != 1) and (global_var(449) == 1)) then begin
+               display_msg(message_str(106, 104));
+            end
+         end
+      end
+   end
+   else begin
+      display_msg(message_str(106, 100));
+   end
+end
+
+procedure description_p_proc begin
+   script_overrides;
+   if ((global_var(6) != 1) and (global_var(449) == 1)) then begin
+      display_msg(message_str(106, random(9100, 9101)));
+   end
+   else begin
+      if (global_var(6) == 1) then begin
+         display_msg(message_str(106, random(105, 109)));
+         if ((random(1, 100) >= 25) and (global_var(6) == 1)) then begin
+            float_msg(self_obj, message_str(106, random(5200, 5206)), 8);
+         end
+      end
+      else begin
+         display_msg(message_str(106, 102));
+      end
+   end
+end
+
+procedure use_skill_on_p_proc begin
+end
+
+procedure use_obj_on_p_proc begin
+   if ((obj_pid(obj_being_used_with) == 39) or (obj_pid(obj_being_used_with) == 38)) then begin
+      script_overrides;
+      display_msg("That does nothing.");
+   end
+   else begin
+      if ((global_var(6) == 1) and (global_var(449) != 1)) then begin
+         if ((obj_pid(obj_being_used_with) == 40) or (obj_pid(obj_being_used_with) == 144)) then begin
+            float_msg(self_obj, message_str(106, random(5010, 5012)), 8);
+         end
+         else begin
+            if (obj_pid(obj_being_used_with) == 273) then begin
+               float_msg(self_obj, message_str(106, random(5020, 5023)), 8);
+            end
+            else begin
+               if ((obj_pid(obj_being_used_with) == 124) or (obj_pid(obj_being_used_with) == 125) or (obj_pid(obj_being_used_with) == 469) or (obj_pid(obj_being_used_with) == 311) or (obj_pid(obj_being_used_with) == 310)) then begin
+                  float_msg(self_obj, message_str(106, random(5030, 5032)), 8);
+               end
+            end
+         end
+      end
+   end
+end
+
+procedure Node999 begin
+end
+
+procedure Node998 begin
+   set_local_var(4, 2);
+end
+
+procedure Node996 begin
+   if ((global_var(297) bwand 131072) != 0) then begin
+      biff := create_object_sid(16777409, 28512, elevation(self_obj), 101);
+      gun := create_object_sid(385, 0, 0, -1);
+      add_obj_to_inven(biff, gun);
+      add_mult_objs_to_inven(biff, create_object_sid(95, 0, 0, -1), 4);
+      wield_obj_critter(biff, gun);
+   end
+   gfade_out(1);
+   game_ui_disable;
+   set_global_var(291, 0);
+   set_global_var(291, 100 + (global_var(291) % 100));
+   debug_msg("\n SET_STAGE_EVENT == " + global_var(291) + " in script " + obj_name(self_obj));
+   set_global_var(291, global_var(291) - (global_var(291) % 100) + 1);
+   debug_msg("\n SET_STAGE_EVENT == " + global_var(291) + " in script " + obj_name(self_obj));
+   set_global_var(0, global_var(0) + -50);
+   debug_msg("Player gains " + -50 + " Karma Points.");
+   set_global_var(37, 0);
+   set_global_var(38, 0);
+   set_global_var(39, 0);
+   set_global_var(40, 0);
+   set_global_var(41, 0);
+   set_global_var(42, 0);
+   set_global_var(43, 0);
+   set_global_var(44, 0);
+   set_global_var(45, 0);
+   if (global_var(0) >= 1000) then begin
+      set_global_var(37, 1);
+   end
+   else begin
+      if (global_var(0) >= 750) then begin
+         set_global_var(38, 1);
+      end
+      else begin
+         if (global_var(0) >= 500) then begin
+            set_global_var(39, 1);
+         end
+         else begin
+            if (global_var(0) >= 250) then begin
+               set_global_var(40, 1);
+            end
+            else begin
+               if (global_var(0) > -250) then begin
+                  set_global_var(41, 1);
+               end
+               else begin
+                  if (global_var(0) > -500) then begin
+                     set_global_var(42, 1);
+                  end
+                  else begin
+                     if (global_var(0) > -750) then begin
+                        set_global_var(43, 1);
+                     end
+                     else begin
+                        if (global_var(0) > -1000) then begin
+                           set_global_var(44, 1);
+                        end
+                        else begin
+                           set_global_var(45, 1);
+                        end
+                     end
+                  end
+               end
+            end
+         end
+      end
+   end
+   critter_attempt_placement(dude_obj, 27501, elevation(dude_obj));
+   if (obj_item_subtype(critter_inven_obj(dude_obj, 0)) == 0) then begin
+      restock_obj := critter_inven_obj(dude_obj, 0);
+      debug_msg("armour pid == " + obj_pid(restock_obj));
+      rm_obj_from_inven(dude_obj, restock_obj);
+      add_obj_to_inven(dude_obj, restock_obj);
+   end
+   set_local_var(7, 1);
+end
+
+procedure Node995 begin
+   if ((global_var(297) bwand 131072) != 0) then begin
+      biff := create_object_sid(16777409, 28512, elevation(self_obj), 101);
+      gun := create_object_sid(385, 0, 0, -1);
+      add_obj_to_inven(biff, gun);
+      add_mult_objs_to_inven(biff, create_object_sid(95, 0, 0, -1), 4);
+      wield_obj_critter(biff, gun);
+   end
+   game_time_advance(get_critter_stat(dude_obj, 2) * random(4, 8) * (60 * 10));
+   set_global_var(194, global_var(194) + (((((get_critter_stat(dude_obj, 3) * 50) + (get_critter_stat(dude_obj, 2) * 25) + (get_critter_stat(dude_obj, 5) * 13) + (get_critter_stat(dude_obj, 0) * 12)) / 100) + (has_trait(0, dude_obj, 94) * 2) + has_trait(2, dude_obj, 13) + (((global_var(194) >= 100) or (global_var(232) > 0)) * 2 * (dude_obj == dude_obj))) * 1));
+   if (global_var(358) >= 9) then begin
+      set_global_var(589, 1);
+   end
+   if (((((get_critter_stat(dude_obj, 3) * 50) + (get_critter_stat(dude_obj, 2) * 25) + (get_critter_stat(dude_obj, 5) * 13) + (get_critter_stat(dude_obj, 0) * 12)) / 100) + (has_trait(0, dude_obj, 94) * 2) + has_trait(2, dude_obj, 13) + (((global_var(194) >= 100) or (global_var(232) > 0)) * 2 * (dude_obj == dude_obj))) >= 9) then begin
+      set_global_var(588, 1);
+   end
+   if (global_var(590) == 1) then begin
+      set_global_var(590, 0);
+   end
+   set_global_var(358, global_var(358) + 1);
+   gfade_out(1);
+   set_global_var(398, 1);
+   game_ui_disable;
+   reg_anim_func(2, dude_obj);
+   if (((game_time_hour > 600) and (game_time_hour < 1800)) == 0) then begin
+      game_time_advance((24 * (60 * (60 * 10)) * (game_time_hour > 1200)) + (((1200 / 100) - (game_time_hour / 100)) * (60 * (60 * 10))) + (((1200 % 100) - (game_time_hour % 100)) * (60 * 10)));
+   end
+   set_global_var(291, 0);
+   if (106 == 106) then begin
+      set_global_var(291, 200 + (global_var(291) % 100));
+      debug_msg("\n SET_STAGE_EVENT == " + global_var(291) + " in script " + obj_name(self_obj));
+      critter_attempt_placement(dude_obj, 27703, elevation(dude_obj));
+   end
+   else begin
+      set_global_var(291, 300 + (global_var(291) % 100));
+      debug_msg("\n SET_STAGE_EVENT == " + global_var(291) + " in script " + obj_name(self_obj));
+      critter_attempt_placement(dude_obj, 27697, elevation(dude_obj));
+   end
+   if (tile_distance(tile_num(self_obj), local_var(13)) > 1) then begin
+      critter_attempt_placement(self_obj, local_var(13), 0);
+   end
+   critter_attempt_placement(dude_obj, (27501 * ((global_var(291) - (global_var(291) % 100)) == 200)) + (27295 * ((global_var(291) - (global_var(291) % 100)) == 300)), elevation(dude_obj));
+   if (obj_item_subtype(critter_inven_obj(dude_obj, 0)) == 0) then begin
+      restock_obj := critter_inven_obj(dude_obj, 0);
+      debug_msg("armour pid == " + obj_pid(restock_obj));
+      rm_obj_from_inven(dude_obj, restock_obj);
+      add_obj_to_inven(dude_obj, restock_obj);
+   end
+   set_global_var(291, global_var(291) - (global_var(291) % 100) + 1);
+   debug_msg("\n SET_STAGE_EVENT == " + global_var(291) + " in script " + obj_name(self_obj));
+end
+
+procedure Node000 begin
+   if (local_var(17) != 10) then begin
+      set_local_var(17, 10);
+   end
+   gsay_reply(106, 154 + (local_var(5) > 0));
+   set_local_var(5, local_var(5) + 1);
+   giq_option(4, 106, 156, Node018, 50);
+   giq_option(4, 106, 157, Node013, 50);
+   giq_option(4, 106, 158, Node014, 50);
+   giq_option(4, 106, message_str(14, random(375, 376)), Node999, 50);
+   giq_option(-3, 106, 159, Node026, 50);
+end
+
+procedure Node002 begin
+   gsay_reply(106, 160);
+   giq_option(4, 106, 156, Node018, 50);
+   giq_option(4, 106, 158, Node014, 50);
+   giq_option(4, 106, 157, Node013, 50);
+   giq_option(4, 106, message_str(14, random(375, 376)), Node999, 50);
+end
+
+procedure Node010 begin
+   did_node_11 := 0;
+   did_node_12 := 0;
+   gsay_reply(106, 164);
+   giq_option(4, 106, 165, Node011, 50);
+   giq_option(4, 106, 166, Node012, 50);
+   giq_option(4, 106, 167, Node014, 50);
+   giq_option(4, 106, message_str(14, random(375, 376)), Node999, 50);
+end
+
+procedure Node011 begin
+   did_node_11 := 1;
+   set_global_var(117, 1);
+   gsay_reply(106, 168);
+   if (did_node_12 == 0) then begin
+      giq_option(4, 106, 166, Node012, 50);
+   end
+   giq_option(4, 106, 184, Node014, 50);
+   giq_option(4, 106, 170, Node002, 50);
+   giq_option(4, 106, message_str(14, random(375, 376)), Node999, 50);
+end
+
+procedure Node012 begin
+   did_node_12 := 1;
+   gsay_reply(106, 171);
+   if (did_node_11 == 0) then begin
+      giq_option(4, 106, 165, Node011, 50);
+   end
+   giq_option(4, 106, 184, Node014, 50);
+   giq_option(4, 106, 170, Node002, 50);
+   giq_option(4, 106, message_str(14, random(375, 376)), Node999, 50);
+end
+
+procedure Node013 begin
+   gsay_reply(106, 174);
+   giq_option(4, 106, 170, Node002, 50);
+   giq_option(4, 106, message_str(14, random(375, 376)), Node999, 50);
+end
+
+procedure Node014 begin
+   gsay_reply(106, 176 + did_node_14);
+   did_node_14 := 1;
+   if ((global_var(105) >= 4) and (global_var(105) < 7) or ((global_var(106) >= 4) and (global_var(106) < 7))) then begin
+      giq_option(4, 106, 178, Node010, 50);
+   end
+   giq_option(4, 106, 179, Node015, 50);
+   giq_option(4, 106, 180, Node016, 50);
+   giq_option(4, 106, 181, Node017, 50);
+   giq_option(4, 106, 182, Node002, 50);
+   giq_option(4, 106, message_str(14, random(375, 376)), Node999, 50);
+end
+
+procedure Node015 begin
+   gsay_reply(106, 183);
+   giq_option(4, 106, 184, Node014, 50);
+   giq_option(4, 106, 182, Node002, 50);
+   giq_option(4, 106, message_str(14, random(375, 376)), Node999, 50);
+end
+
+procedure Node016 begin
+   gsay_reply(106, 186);
+   giq_option(4, 106, 184, Node014, 50);
+   giq_option(4, 106, 182, Node002, 50);
+   giq_option(4, 106, message_str(14, random(375, 376)), Node999, 50);
+end
+
+procedure Node017 begin
+   gsay_reply(106, 189);
+   giq_option(4, 106, 184, Node014, 50);
+   giq_option(4, 106, 182, Node002, 50);
+   giq_option(4, 106, message_str(14, random(375, 376)), Node999, 50);
+end
+
+procedure Node018 begin
+   gsay_reply(106, 192);
+   if ((get_critter_stat(dude_obj, 3) + is_success(do_check(dude_obj, 3, 0)) + (global_var(52) > 0)) >= 9) then begin
+      giq_option(4, 106, 193, Node019, 50);
+   end
+   giq_option(4, 106, 194, Node020, 50);
+   giq_option(4, 106, 170, Node002, 50);
+   giq_option(4, 106, message_str(14, random(375, 376)), Node999, 50);
+end
+
+procedure Node019 begin
+   gsay_reply(106, 196);
+   giq_option(4, 106, 197, Node021, 50);
+   if (get_critter_stat(dude_obj, 34) == 0) then begin
+      giq_option(4, 106, message_str(106, 198) + obj_name(dude_obj) + message_str(106, 199), Node022, 50);
+   end
+   giq_option(4, 106, 200, Node024, 50);
+   giq_option(4, 106, 170, Node002, 50);
+   giq_option(4, 106, message_str(14, random(375, 376)), Node999, 50);
+end
+
+procedure Node020 begin
+   gsay_reply(106, 202);
+   giq_option(4, 106, 203, Node996, 50);
+   giq_option(4, 106, 204, Node999, 50);
+end
+
+procedure Node021 begin
+   set_local_var(6, 2);
+   gsay_reply(106, 205);
+   giq_option(4, 106, message_str(14, 350), Node999, 50);
+end
+
+procedure Node022 begin
+   gsay_reply(106, 206);
+   giq_option(4, 106, 170, Node023, 50);
+   giq_option(4, 106, message_str(14, random(375, 376)), Node999, 50);
+end
+
+procedure Node023 begin
+   gsay_reply(106, 208);
+   giq_option(4, 106, message_str(14, 350), Node999, 50);
+end
+
+procedure Node024 begin
+   gsay_reply(106, 209);
+   giq_option(4, 106, 210, Node025, 50);
+   giq_option(4, 106, 211, Node022, 50);
+   giq_option(4, 106, 212, Node020, 50);
+   giq_option(4, 106, 213, Node021, 50);
+   giq_option(4, 106, message_str(14, random(375, 376)), Node999, 50);
+end
+
+procedure Node025 begin
+   gsay_reply(106, 214);
+   giq_option(4, 106, 215, Node995, 50);
+end
+
+procedure Node026 begin
+   gsay_reply(106, 216);
+   giq_option(-3, 106, 217, Node027, 50);
+   giq_option(-3, 106, 218, Node999, 50);
+end
+
+procedure Node027 begin
+   gsay_reply(106, 219);
+   giq_option(-3, 106, message_str(14, 350), Node999, 50);
+end
+
+procedure Node100 begin
+   gsay_reply(106, random(1000, 1004));
+   if ((local_var(9) != 0) == 0) then begin
+      if (local_var(10) == 0) then begin
+         set_local_var(10, 3);
+      end
+      giq_option(4, 106, 10000, Node2000, 50);
+      if (message_str(14, 10001) != 0) then begin
+         if (get_critter_stat(self_obj, 35) < get_critter_stat(self_obj, 7)) then begin
+            if (global_var(0) <= -500) then begin
+               giq_option(4, 106, 9211, Node1001, 50);
+            end
+            else begin
+               giq_option(4, 106, 9210, Node1001, 50);
+            end
+         end
+      end
+      if (message_str(106, 1020) != 0) then begin
+         giq_option(4, 106, 1020, Node1007, 50);
+      end
+      if (message_str(14, 10009) != 0) then begin
+         if (global_var(0) <= -500) then begin
+            giq_option(4, 106, 9221, Node1008, 50);
+         end
+         else begin
+            giq_option(4, 106, 9220, Node1008, 50);
+         end
+      end
+      if (message_str(14, 10002) != 0) then begin
+         if (global_var(0) <= -500) then begin
+            giq_option(4, 106, 9231, Node1002, 50);
+         end
+         else begin
+            giq_option(4, 106, 9230, Node1002, 50);
+         end
+      end
+   end
+   else begin
+      if (message_str(14, 10100) != 0) then begin
+         giq_option(4, 106, random(9200, 9201), Node1100, 50);
+      end
+   end
+   if (message_str(14, 10007) != 0) then begin
+      if (global_var(0) > -500) then begin
+         giq_option(4, 106, random(9240, 9241), Node999, 50);
+      end
+      else begin
+         giq_option(4, 106, random(9241, 9242), Node999, 50);
+      end
+   end
+   if (message_str(14, random(300, 303)) != 0) then begin
+      giq_option(-3, 106, message_str(14, random(300, 303)), Node999, 50);
+   end
+   debug_msg("USED PARTY MEMBER OPTIONS");
+end
+
+procedure Node1001 begin
+   if (obj_is_carrying_obj_pid(self_obj, 144)) then begin
+      if ((global_temp == 0) and (combat_is_initialized == 0)) then begin
+         gfade_out(600);
+         if (0 > 0) then begin
+            game_time_advance(0);
+         end
+         gfade_in(600);
+      end
+      PartyHealingItem := obj_carrying_pid_obj(self_obj, 144);
+      use_obj_on_obj(PartyHealingItem, self_obj);
+      debug_msg(obj_name(self_obj) + " used super stimpak.");
+   end
+   else begin
+      if (obj_is_carrying_obj_pid(self_obj, 40)) then begin
+         if ((global_temp == 0) and (combat_is_initialized == 0)) then begin
+            gfade_out(600);
+            if (0 > 0) then begin
+               game_time_advance(0);
+            end
+            gfade_in(600);
+         end
+         use_obj_on_obj(obj_carrying_pid_obj(self_obj, 40), self_obj);
+         debug_msg(obj_name(self_obj) + " used stimpak.");
+      end
+      else begin
+         if (obj_is_carrying_obj_pid(self_obj, 273)) then begin
+            if ((global_temp == 0) and (combat_is_initialized == 0)) then begin
+               gfade_out(600);
+               if (0 > 0) then begin
+                  game_time_advance(0);
+               end
+               gfade_in(600);
+            end
+            use_obj_on_obj(obj_carrying_pid_obj(self_obj, 273), self_obj);
+            debug_msg(obj_name(self_obj) + " used healing powder.");
+         end
+         else begin
+            if (obj_is_carrying_obj_pid(self_obj, 91)) then begin
+               if ((global_temp == 0) and (combat_is_initialized == 0)) then begin
+                  gfade_out(600);
+                  if (0 > 0) then begin
+                     game_time_advance(0);
+                  end
+                  gfade_in(600);
+               end
+               use_obj_on_obj(obj_carrying_pid_obj(self_obj, 91), self_obj);
+               debug_msg(obj_name(self_obj) + " used doctor's bag kit.");
+            end
+            else begin
+               if (obj_is_carrying_obj_pid(self_obj, 47)) then begin
+                  if ((global_temp == 0) and (combat_is_initialized == 0)) then begin
+                     gfade_out(600);
+                     if (0 > 0) then begin
+                        game_time_advance(0);
+                     end
+                     gfade_in(600);
+                  end
+                  use_obj_on_obj(obj_carrying_pid_obj(self_obj, 47), self_obj);
+                  debug_msg(obj_name(self_obj) + " used First Aid kit.");
+               end
+               else begin
+                  if (has_skill(self_obj, 7) > has_skill(self_obj, 6)) then begin
+                     if ((global_temp == 0) and (combat_is_initialized == 0)) then begin
+                        gfade_out(600);
+                        if ((60 * (60 * 10)) > 0) then begin
+                           game_time_advance(60 * (60 * 10));
+                        end
+                        gfade_in(600);
+                     end
+                     if (is_success(roll_vs_skill(self_obj, 7, 0))) then begin
+                        critter_heal(self_obj, random(10, 25));
+                        debug_msg(obj_name(self_obj) + " healed some using doctor skill.");
+                     end
+                  end
+                  else begin
+                     if ((global_temp == 0) and (combat_is_initialized == 0)) then begin
+                        gfade_out(600);
+                        if ((15 * (60 * 10)) > 0) then begin
+                           game_time_advance(15 * (60 * 10));
+                        end
+                        gfade_in(600);
+                     end
+                     if (is_success(roll_vs_skill(self_obj, 6, 0))) then begin
+                        critter_heal(self_obj, random(5, 15));
+                        debug_msg(obj_name(self_obj) + " healed some using first aid skill.");
+                     end
+                  end
+               end
+            end
+         end
+      end
+   end
+   global_temp := 0;
+   if (get_critter_stat(self_obj, 35) == get_critter_stat(self_obj, 7)) then begin
+      gsay_reply(106, 1100);
+   end
+   else begin
+      if ((get_critter_stat(self_obj, 35) * 100 / get_critter_stat(self_obj, 7)) >= 90) then begin
+         gsay_reply(106, 1200);
+      end
+      else begin
+         if ((get_critter_stat(self_obj, 35) * 100 / get_critter_stat(self_obj, 7)) >= 70) then begin
+            gsay_reply(106, 1300);
+         end
+         else begin
+            gsay_reply(106, 1400);
+         end
+      end
+   end
+   if ((local_var(9) != 0) == 0) then begin
+      if (local_var(10) == 0) then begin
+         set_local_var(10, 3);
+      end
+      giq_option(4, 106, 10000, Node2000, 50);
+      if (message_str(14, 10001) != 0) then begin
+         if (get_critter_stat(self_obj, 35) < get_critter_stat(self_obj, 7)) then begin
+            if (global_var(0) <= -500) then begin
+               giq_option(4, 106, 9211, Node1001, 50);
+            end
+            else begin
+               giq_option(4, 106, 9210, Node1001, 50);
+            end
+         end
+      end
+      if (message_str(106, 1020) != 0) then begin
+         giq_option(4, 106, 1020, Node1007, 50);
+      end
+      if (message_str(14, 10009) != 0) then begin
+         if (global_var(0) <= -500) then begin
+            giq_option(4, 106, 9221, Node1008, 50);
+         end
+         else begin
+            giq_option(4, 106, 9220, Node1008, 50);
+         end
+      end
+      if (message_str(14, 10002) != 0) then begin
+         if (global_var(0) <= -500) then begin
+            giq_option(4, 106, 9231, Node1002, 50);
+         end
+         else begin
+            giq_option(4, 106, 9230, Node1002, 50);
+         end
+      end
+   end
+   else begin
+      if (message_str(14, 10100) != 0) then begin
+         giq_option(4, 106, random(9200, 9201), Node1100, 50);
+      end
+   end
+   if (message_str(14, 10007) != 0) then begin
+      if (global_var(0) > -500) then begin
+         giq_option(4, 106, random(9240, 9241), Node999, 50);
+      end
+      else begin
+         giq_option(4, 106, random(9241, 9242), Node999, 50);
+      end
+   end
+   if (message_str(14, random(300, 303)) != 0) then begin
+      giq_option(-3, 106, message_str(14, random(300, 303)), Node999, 50);
+   end
+   debug_msg("USED PARTY MEMBER OPTIONS");
+end
+
+procedure Node1002 begin
+   set_local_var(9, game_time);
+   party_remove(self_obj);
+   rm_timer_event(self_obj);
+   gsay_reply(106, random(8000, 8004));
+   if ((local_var(9) != 0) == 0) then begin
+      if (local_var(10) == 0) then begin
+         set_local_var(10, 3);
+      end
+      if (message_str(14, 10001) != 0) then begin
+         if (get_critter_stat(self_obj, 35) < get_critter_stat(self_obj, 7)) then begin
+            if (global_var(0) <= -500) then begin
+               giq_option(4, 106, 9211, Node1001, 50);
+            end
+            else begin
+               giq_option(4, 106, 9210, Node1001, 50);
+            end
+         end
+      end
+      if (message_str(106, 1020) != 0) then begin
+         giq_option(4, 106, 1020, Node1007, 50);
+      end
+      if (message_str(14, 10009) != 0) then begin
+         if (global_var(0) <= -500) then begin
+            giq_option(4, 106, 9221, Node1008, 50);
+         end
+         else begin
+            giq_option(4, 106, 9220, Node1008, 50);
+         end
+      end
+      if (message_str(14, 10002) != 0) then begin
+         if (global_var(0) <= -500) then begin
+            giq_option(4, 106, 9231, Node1002, 50);
+         end
+         else begin
+            giq_option(4, 106, 9230, Node1002, 50);
+         end
+      end
+   end
+   else begin
+      if (message_str(14, 10100) != 0) then begin
+         giq_option(4, 106, random(9200, 9201), Node1100, 50);
+      end
+   end
+   if (message_str(14, 10007) != 0) then begin
+      if (global_var(0) > -500) then begin
+         giq_option(4, 106, random(9240, 9241), Node999, 50);
+      end
+      else begin
+         giq_option(4, 106, random(9241, 9242), Node999, 50);
+      end
+   end
+   if (message_str(14, random(300, 303)) != 0) then begin
+      giq_option(-3, 106, message_str(14, random(300, 303)), Node999, 50);
+   end
+   debug_msg("USED PARTY MEMBER OPTIONS");
+end
+
+procedure Node1003 begin
+   metarule(43, self_obj);
+   gsay_reply(106, 1600);
+   if ((local_var(9) != 0) == 0) then begin
+      if (local_var(10) == 0) then begin
+         set_local_var(10, 3);
+      end
+      giq_option(4, 106, 10000, Node2000, 50);
+      if (message_str(14, 10001) != 0) then begin
+         if (get_critter_stat(self_obj, 35) < get_critter_stat(self_obj, 7)) then begin
+            if (global_var(0) <= -500) then begin
+               giq_option(4, 106, 9211, Node1001, 50);
+            end
+            else begin
+               giq_option(4, 106, 9210, Node1001, 50);
+            end
+         end
+      end
+      if (message_str(106, 1020) != 0) then begin
+         giq_option(4, 106, 1020, Node1007, 50);
+      end
+      if (message_str(14, 10009) != 0) then begin
+         if (global_var(0) <= -500) then begin
+            giq_option(4, 106, 9221, Node1008, 50);
+         end
+         else begin
+            giq_option(4, 106, 9220, Node1008, 50);
+         end
+      end
+      if (message_str(14, 10002) != 0) then begin
+         if (global_var(0) <= -500) then begin
+            giq_option(4, 106, 9231, Node1002, 50);
+         end
+         else begin
+            giq_option(4, 106, 9230, Node1002, 50);
+         end
+      end
+   end
+   else begin
+      if (message_str(14, 10100) != 0) then begin
+         giq_option(4, 106, random(9200, 9201), Node1100, 50);
+      end
+   end
+   if (message_str(14, 10007) != 0) then begin
+      if (global_var(0) > -500) then begin
+         giq_option(4, 106, random(9240, 9241), Node999, 50);
+      end
+      else begin
+         giq_option(4, 106, random(9241, 9242), Node999, 50);
+      end
+   end
+   if (message_str(14, random(300, 303)) != 0) then begin
+      giq_option(-3, 106, message_str(14, random(300, 303)), Node999, 50);
+   end
+   debug_msg("USED PARTY MEMBER OPTIONS");
+end
+
+procedure Node1004 begin
+   set_local_var(10, 3);
+   gsay_reply(106, 1700);
+   if ((local_var(9) != 0) == 0) then begin
+      if (local_var(10) == 0) then begin
+         set_local_var(10, 3);
+      end
+      giq_option(4, 106, 10000, Node2000, 50);
+      if (message_str(14, 10001) != 0) then begin
+         if (get_critter_stat(self_obj, 35) < get_critter_stat(self_obj, 7)) then begin
+            if (global_var(0) <= -500) then begin
+               giq_option(4, 106, 9211, Node1001, 50);
+            end
+            else begin
+               giq_option(4, 106, 9210, Node1001, 50);
+            end
+         end
+      end
+      if (message_str(106, 1020) != 0) then begin
+         giq_option(4, 106, 1020, Node1007, 50);
+      end
+      if (message_str(14, 10009) != 0) then begin
+         if (global_var(0) <= -500) then begin
+            giq_option(4, 106, 9221, Node1008, 50);
+         end
+         else begin
+            giq_option(4, 106, 9220, Node1008, 50);
+         end
+      end
+      if (message_str(14, 10002) != 0) then begin
+         if (global_var(0) <= -500) then begin
+            giq_option(4, 106, 9231, Node1002, 50);
+         end
+         else begin
+            giq_option(4, 106, 9230, Node1002, 50);
+         end
+      end
+   end
+   else begin
+      if (message_str(14, 10100) != 0) then begin
+         giq_option(4, 106, random(9200, 9201), Node1100, 50);
+      end
+   end
+   if (message_str(14, 10007) != 0) then begin
+      if (global_var(0) > -500) then begin
+         giq_option(4, 106, random(9240, 9241), Node999, 50);
+      end
+      else begin
+         giq_option(4, 106, random(9241, 9242), Node999, 50);
+      end
+   end
+   if (message_str(14, random(300, 303)) != 0) then begin
+      giq_option(-3, 106, message_str(14, random(300, 303)), Node999, 50);
+   end
+   debug_msg("USED PARTY MEMBER OPTIONS");
+end
+
+procedure Node1005 begin
+   gsay_reply(106, 1800);
+   if ((local_var(9) != 0) == 0) then begin
+      if (local_var(10) == 0) then begin
+         set_local_var(10, 6);
+      end
+      giq_option(4, 106, 10000, Node2000, 50);
+      if (message_str(14, 10001) != 0) then begin
+         if (get_critter_stat(self_obj, 35) < get_critter_stat(self_obj, 7)) then begin
+            if (global_var(0) <= -500) then begin
+               giq_option(4, 106, 9211, Node1001, 50);
+            end
+            else begin
+               giq_option(4, 106, 9210, Node1001, 50);
+            end
+         end
+      end
+      if (message_str(106, 1020) != 0) then begin
+         giq_option(4, 106, 1020, Node1007, 50);
+      end
+      if (message_str(14, 10009) != 0) then begin
+         if (global_var(0) <= -500) then begin
+            giq_option(4, 106, 9221, Node1008, 50);
+         end
+         else begin
+            giq_option(4, 106, 9220, Node1008, 50);
+         end
+      end
+      if (message_str(14, 10002) != 0) then begin
+         if (global_var(0) <= -500) then begin
+            giq_option(4, 106, 9231, Node1002, 50);
+         end
+         else begin
+            giq_option(4, 106, 9230, Node1002, 50);
+         end
+      end
+   end
+   else begin
+      if (message_str(14, 10100) != 0) then begin
+         giq_option(4, 106, random(9200, 9201), Node1100, 50);
+      end
+   end
+   if (message_str(14, 10007) != 0) then begin
+      if (global_var(0) > -500) then begin
+         giq_option(4, 106, random(9240, 9241), Node999, 50);
+      end
+      else begin
+         giq_option(4, 106, random(9241, 9242), Node999, 50);
+      end
+   end
+   if (message_str(14, random(300, 303)) != 0) then begin
+      giq_option(-3, 106, message_str(14, random(300, 303)), Node999, 50);
+   end
+   debug_msg("USED PARTY MEMBER OPTIONS");
+end
+
+procedure Node1006 begin
+   gsay_reply(106, 1900);
+   if ((local_var(9) != 0) == 0) then begin
+      if (local_var(10) == 0) then begin
+         set_local_var(10, 9);
+      end
+      giq_option(4, 106, 10000, Node2000, 50);
+      if (message_str(14, 10001) != 0) then begin
+         if (get_critter_stat(self_obj, 35) < get_critter_stat(self_obj, 7)) then begin
+            if (global_var(0) <= -500) then begin
+               giq_option(4, 106, 9211, Node1001, 50);
+            end
+            else begin
+               giq_option(4, 106, 9210, Node1001, 50);
+            end
+         end
+      end
+      if (message_str(106, 1020) != 0) then begin
+         giq_option(4, 106, 1020, Node1007, 50);
+      end
+      if (message_str(14, 10009) != 0) then begin
+         if (global_var(0) <= -500) then begin
+            giq_option(4, 106, 9221, Node1008, 50);
+         end
+         else begin
+            giq_option(4, 106, 9220, Node1008, 50);
+         end
+      end
+      if (message_str(14, 10002) != 0) then begin
+         if (global_var(0) <= -500) then begin
+            giq_option(4, 106, 9231, Node1002, 50);
+         end
+         else begin
+            giq_option(4, 106, 9230, Node1002, 50);
+         end
+      end
+   end
+   else begin
+      if (message_str(14, 10100) != 0) then begin
+         giq_option(4, 106, random(9200, 9201), Node1100, 50);
+      end
+   end
+   if (message_str(14, 10007) != 0) then begin
+      if (global_var(0) > -500) then begin
+         giq_option(4, 106, random(9240, 9241), Node999, 50);
+      end
+      else begin
+         giq_option(4, 106, random(9241, 9242), Node999, 50);
+      end
+   end
+   if (message_str(14, random(300, 303)) != 0) then begin
+      giq_option(-3, 106, message_str(14, random(300, 303)), Node999, 50);
+   end
+   debug_msg("USED PARTY MEMBER OPTIONS");
+end
+
+procedure Node1007 begin
+   gsay_reply(106, 1007);
+   if (message_str(14, 10004) != 0) then begin
+      if (local_var(10) != 3) then begin
+         giq_option(4, 106, message_str(14, 10004), Node1004, 50);
+      end
+   end
+   if (message_str(106, 1005) != 0) then begin
+      if (local_var(10) != 6) then begin
+         giq_option(4, 106, 1005, Node1005, 50);
+      end
+   end
+   if (message_str(106, 1006) != 0) then begin
+      if (local_var(10) != 9) then begin
+         giq_option(4, 106, 1006, Node1006, 50);
+      end
+   end
+   if (message_str(14, 10010) != 0) then begin
+      giq_option(4, 106, message_str(14, 10010), Node100, 50);
+   end
+   debug_msg("USED PARTY FOLLOW OPTIONS");
+end
+
+procedure Node1008 begin
+   gsay_reply(106, 1008);
+   if (message_str(14, 10013) != 0) then begin
+      giq_option(4, 106, message_str(14, 10013), Node1010, 50);
+   end
+   if (message_str(14, 10003) != 0) then begin
+      if ((obj_item_subtype(critter_inven_obj(self_obj, 1)) == 3) or (obj_item_subtype(critter_inven_obj(self_obj, 2)) == 3)) then begin
+         if (global_var(0) <= -500) then begin
+            giq_option(4, 106, 9251, Node1003, 50);
+         end
+         else begin
+            giq_option(4, 106, 9250, Node1003, 50);
+         end
+      end
+   end
+   if (message_str(14, 10012) != 0) then begin
+      if (obj_item_subtype(critter_inven_obj(self_obj, 0)) == 0) then begin
+         if (global_var(0) <= -500) then begin
+            giq_option(4, 106, 9261, Node1009, 50);
+         end
+         else begin
+            giq_option(4, 106, 9260, Node1009, 50);
+         end
+      end
+   end
+   if (message_str(14, 10011) != 0) then begin
+      giq_option(4, 106, message_str(14, 10011), Node100, 50);
+   end
+   debug_msg("USED PARTY GEAR OPTIONS");
+end
+
+procedure Node1009 begin
+   if (obj_item_subtype(critter_inven_obj(self_obj, 0)) == 0) then begin
+      restock_obj := critter_inven_obj(self_obj, 0);
+      debug_msg("armour pid == " + obj_pid(restock_obj));
+      rm_obj_from_inven(self_obj, restock_obj);
+      add_obj_to_inven(self_obj, restock_obj);
+   end
+   gsay_reply(106, 1009);
+   if ((local_var(9) != 0) == 0) then begin
+      if (local_var(10) == 0) then begin
+         set_local_var(10, 3);
+      end
+      giq_option(4, 106, 10000, Node2000, 50);
+      if (message_str(14, 10001) != 0) then begin
+         if (get_critter_stat(self_obj, 35) < get_critter_stat(self_obj, 7)) then begin
+            if (global_var(0) <= -500) then begin
+               giq_option(4, 106, 9211, Node1001, 50);
+            end
+            else begin
+               giq_option(4, 106, 9210, Node1001, 50);
+            end
+         end
+      end
+      if (message_str(106, 1020) != 0) then begin
+         giq_option(4, 106, 1020, Node1007, 50);
+      end
+      if (message_str(14, 10009) != 0) then begin
+         if (global_var(0) <= -500) then begin
+            giq_option(4, 106, 9221, Node1008, 50);
+         end
+         else begin
+            giq_option(4, 106, 9220, Node1008, 50);
+         end
+      end
+      if (message_str(14, 10002) != 0) then begin
+         if (global_var(0) <= -500) then begin
+            giq_option(4, 106, 9231, Node1002, 50);
+         end
+         else begin
+            giq_option(4, 106, 9230, Node1002, 50);
+         end
+      end
+   end
+   else begin
+      if (message_str(14, 10100) != 0) then begin
+         giq_option(4, 106, random(9200, 9201), Node1100, 50);
+      end
+   end
+   if (message_str(14, 10007) != 0) then begin
+      if (global_var(0) > -500) then begin
+         giq_option(4, 106, random(9240, 9241), Node999, 50);
+      end
+      else begin
+         giq_option(4, 106, random(9241, 9242), Node999, 50);
+      end
+   end
+   if (message_str(14, random(300, 303)) != 0) then begin
+      giq_option(-3, 106, message_str(14, random(300, 303)), Node999, 50);
+   end
+   debug_msg("USED PARTY MEMBER OPTIONS");
+end
+
+procedure Node1010 begin
+   gsay_reply(106, 1010);
+   if ((local_var(9) != 0) == 0) then begin
+      if (local_var(10) == 0) then begin
+         set_local_var(10, 3);
+      end
+      giq_option(4, 106, 10000, Node2000, 50);
+      if (message_str(14, 10001) != 0) then begin
+         if (get_critter_stat(self_obj, 35) < get_critter_stat(self_obj, 7)) then begin
+            if (global_var(0) <= -500) then begin
+               giq_option(4, 106, 9211, Node1001, 50);
+            end
+            else begin
+               giq_option(4, 106, 9210, Node1001, 50);
+            end
+         end
+      end
+      if (message_str(106, 1020) != 0) then begin
+         giq_option(4, 106, 1020, Node1007, 50);
+      end
+      if (message_str(14, 10009) != 0) then begin
+         if (global_var(0) <= -500) then begin
+            giq_option(4, 106, 9221, Node1008, 50);
+         end
+         else begin
+            giq_option(4, 106, 9220, Node1008, 50);
+         end
+      end
+      if (message_str(14, 10002) != 0) then begin
+         if (global_var(0) <= -500) then begin
+            giq_option(4, 106, 9231, Node1002, 50);
+         end
+         else begin
+            giq_option(4, 106, 9230, Node1002, 50);
+         end
+      end
+   end
+   else begin
+      if (message_str(14, 10100) != 0) then begin
+         giq_option(4, 106, random(9200, 9201), Node1100, 50);
+      end
+   end
+   if (message_str(14, 10007) != 0) then begin
+      if (global_var(0) > -500) then begin
+         giq_option(4, 106, random(9240, 9241), Node999, 50);
+      end
+      else begin
+         giq_option(4, 106, random(9241, 9242), Node999, 50);
+      end
+   end
+   if (message_str(14, random(300, 303)) != 0) then begin
+      giq_option(-3, 106, message_str(14, random(300, 303)), Node999, 50);
+   end
+   debug_msg("USED PARTY MEMBER OPTIONS");
+end
+
+procedure Node1100 begin
+   variable LVar0 := 0;
+   if ((global_var(6) != 1) and (global_var(449) == 1)) then begin
+      if (party_member_obj(obj_pid(self_obj)) != 0) then begin
+         debug_msg("abandon party: " + obj_name(self_obj));
+         party_remove(self_obj);
+      end
+      if ((local_var(8) != -1) and (has_trait(1, self_obj, 6) == 0)) then begin
+         critter_add_trait(self_obj, 1, 6, local_var(8));
+         set_local_var(8, -1);
+      end
+      debug_msg("" + obj_name(self_obj) + " has abandoned the party");
+      gsay_reply(106, random(9110, 9120));
+      giq_option(1, 106, 9130, Node999, 50);
+      giq_option(1, 106, 9140, Node999, 50);
+   end
+   else begin
+      set_local_var(9, 0);
+      if ((critter_state(self_obj) bwand 1) == 0) then begin
+         if (local_var(10) == 0) then begin
+            set_local_var(10, 3);
+         end
+         if (has_trait(1, self_obj, 6) != 0) then begin
+            set_local_var(8, has_trait(1, self_obj, 6));
+         end
+         critter_add_trait(self_obj, 1, 6, 0);
+         party_add(self_obj);
+         rm_timer_event(self_obj);
+         add_timer_event(self_obj, game_ticks(random(40, 50)), 1);
+      end
+      debug_msg("join party: " + obj_name(self_obj));
+      if (LVar0 == 0) then begin
+         if ((game_time_hour >= 400) and (game_time_hour <= 900)) then begin
+            LVar0 := 9161;
+         end
+         else begin
+            if ((game_time_hour > 900) and (game_time_hour <= 1300)) then begin
+               LVar0 := 9162;
+            end
+            else begin
+               if ((game_time_hour > 1300) and (game_time_hour <= 2200)) then begin
+                  LVar0 := 9163;
+               end
+               else begin
+                  if ((game_time_hour > 2200) and (game_time_hour < 400)) then begin
+                     LVar0 := 9164;
+                  end
+               end
+            end
+         end
+      end
+      if ((global_var(1) >= 5) or (global_var(0) < -500)) then begin
+         gsay_reply(106, random(8010, 8011));
+         giq_option(1, 106, random(9170, 9180), Node999, 50);
+         giq_option(1, 106, message_str(106, 9160) + message_str(106, LVar0), Node999, 50);
+      end
+      else begin
+         gsay_reply(106, random(8005, 8009));
+         giq_option(1, 106, 9150, Node999, 50);
+         giq_option(1, 106, message_str(106, 9160) + message_str(106, LVar0), Node999, 50);
+      end
+   end
+   return 0;
+   LVar0 := 0;
+end
+
+procedure Node2000 begin
+   gsay_reply(106, random(10001, 10005));
+   giq_option(4, 106, 10010, Node2100, 50);
+   giq_option(4, 106, random(10030, 10033), Node2200, 50);
+   giq_option(4, 106, random(10048, 10051), Node2300, 50);
+   giq_option(4, 106, 10070, Node2400, 50);
+   giq_option(4, 106, 11200, Node2600, 50);
+   giq_option(4, 106, 10006, Node999, 50);
+end
+
+procedure Node2100 begin
+   if (local_var(15) < 2) then begin
+      set_local_var(15, local_var(15) + 1);
+      set_global_var(791, game_time + (2 * (30 * (24 * (60 * (60 * 10))))));
+      gsay_reply(106, 10011);
+      giq_option(4, 106, 10027, Node100, 50);
+      giq_option(4, 106, 10029, Node999, 50);
+   end
+   else begin
+      if (global_var(791) >= game_time) then begin
+         set_global_var(791, game_time + (2 * (30 * (24 * (60 * (60 * 10))))));
+         gsay_reply(106, random(10012, 10016));
+         giq_option(4, 106, random(10022, 10023), Node100, 50);
+         giq_option(4, 106, random(10024, 10025), Node999, 50);
+      end
+      else begin
+         set_global_var(791, game_time + (2 * (30 * (24 * (60 * (60 * 10))))));
+         gsay_reply(106, random(10017, 10021));
+         giq_option(4, 106, random(10026, 10027), Node100, 50);
+         giq_option(4, 106, random(10028, 10029), Node999, 50);
+      end
+   end
+end
+
+procedure Node2200 begin
+   set_global_var(792, game_time + (2 * (30 * (24 * (60 * (60 * 10))))));
+   gsay_reply(106, random(10034, 10038));
+   giq_option(4, 106, random(10039, 10040), Node2500, 50);
+   giq_option(4, 106, 10041, Node100, 50);
+   giq_option(4, 106, random(10042, 10043), Node999, 50);
+end
+
+procedure Node2300 begin
+   set_global_var(793, game_time + (2 * (30 * (24 * (60 * (60 * 10))))));
+   gsay_reply(106, random(10052, 10056));
+   if (get_critter_stat(dude_obj, 34) == 1) then begin
+      giq_option(4, 106, random(10057, 10065), Node2501, 50);
+   end
+   giq_option(4, 106, random(10066, 10067), Node2500, 50);
+   giq_option(4, 106, 10068, Node100, 50);
+   giq_option(4, 106, 10069, Node999, 50);
+end
+
+procedure Node2400 begin
+   if ((game_time < global_var(791)) and (game_time < global_var(792)) and (game_time < global_var(793)) and (game_time < global_var(794))) then begin
+      if ((global_var(22) > 0) or (global_var(23) > 0) or (global_var(24) > 0) or (global_var(25) > 0) or (global_var(296) != 0)) then begin
+         gsay_reply(106, 10077);
+         giq_option(4, 106, 10091, Node100, 50);
+         giq_option(4, 106, 10089, Node999, 50);
+      end
+      else begin
+         if (global_var(295) > 0) then begin
+            gsay_reply(106, 10096);
+            giq_option(4, 106, 10088, Node100, 50);
+            giq_option(4, 106, 10089, Node999, 50);
+         end
+         else begin
+            if (global_var(26) > 0) then begin
+               gsay_reply(106, 11050);
+               giq_option(4, 106, 10091, Node100, 50);
+               giq_option(4, 106, 10089, Node999, 50);
+            end
+            else begin
+               if (global_var(230) > 0) then begin
+                  gsay_reply(106, 10081);
+                  giq_option(4, 106, 10094, Node100, 50);
+                  giq_option(4, 106, 10095, Node999, 50);
+               end
+               else begin
+                  if (global_var(11) != 0) then begin
+                     gsay_reply(106, 10079);
+                     giq_option(4, 106, 11388, Node100, 50);
+                     giq_option(4, 106, 10093, Node999, 50);
+                  end
+                  else begin
+                     if (global_var(0) <= -500) then begin
+                        gsay_reply(106, 10083);
+                        giq_option(4, 106, 11370, Node100, 50);
+                        giq_option(4, 106, 11375, Node999, 50);
+                     end
+                     else begin
+                        gsay_reply(106, random(10071, 10073));
+                        giq_option(4, 106, random(10085, 10086), Node100, 50);
+                        giq_option(4, 106, 10087, Node999, 50);
+                     end
+                  end
+               end
+            end
+         end
+      end
+   end
+   else begin
+      if ((global_var(22) > 0) or (global_var(23) > 0) or (global_var(24) > 0) or (global_var(25) > 0) or (global_var(296) > 0)) then begin
+         gsay_reply(106, 10078);
+         giq_option(4, 106, 10091, Node100, 50);
+         giq_option(4, 106, 10092, Node999, 50);
+      end
+      else begin
+         if (global_var(295) > 0) then begin
+            gsay_reply(106, 10097);
+            giq_option(4, 106, 10098, Node100, 50);
+            giq_option(4, 106, 10099, Node999, 50);
+         end
+         else begin
+            if (global_var(26) > 0) then begin
+               gsay_reply(106, 11051);
+               giq_option(4, 106, 10091, Node100, 50);
+               giq_option(4, 106, 10092, Node999, 50);
+            end
+            else begin
+               if (global_var(230) > 0) then begin
+                  gsay_reply(106, 10082);
+                  giq_option(4, 106, 10094, Node100, 50);
+                  giq_option(4, 106, 10095, Node999, 50);
+               end
+               else begin
+                  if (global_var(11) != 0) then begin
+                     gsay_reply(106, 10080);
+                     giq_option(4, 106, 11052, Node100, 50);
+                     giq_option(4, 106, 11053, Node999, 50);
+                  end
+                  else begin
+                     if (global_var(0) < -500) then begin
+                        gsay_reply(106, 10084);
+                        giq_option(4, 106, 11054, Node100, 50);
+                        giq_option(4, 106, 11386, Node999, 50);
+                     end
+                     else begin
+                        gsay_reply(106, random(10074, 10076));
+                        giq_option(4, 106, random(10088, 10089), Node100, 50);
+                        giq_option(4, 106, 10090, Node999, 50);
+                     end
+                  end
+               end
+            end
+         end
+      end
+   end
+end
+
+procedure Node2500 begin
+   if (20 >= random(1, 100)) then begin
+      if (50 >= random(1, 100)) then begin
+         gsay_reply(106, 11030);
+         if (get_critter_stat(dude_obj, 34) == 1) then begin
+            giq_option(4, 106, 11035, Node999, 50);
+         end
+         else begin
+            giq_option(4, 106, 11036, Node999, 50);
+         end
+      end
+      else begin
+         gsay_reply(106, 11031);
+         giq_option(4, 106, 11037, Node2504, 50);
+         giq_option(4, 106, 11038, Node999, 50);
+      end
+   end
+   else begin
+      call Node2503();
+   end
+end
+
+procedure Node2501 begin
+   gfade_out(1);
+   set_global_var(794, game_time + (2 * (30 * (24 * (60 * (60 * 10))))));
+   set_local_var(19, 1);
+   game_time_advance(60 * (60 * 10));
+   call Node999();
+end
+
+procedure Node2502 begin
+   gfade_in(1);
+   if (local_var(19) == 1) then begin
+      display_msg(message_str(106, 11000));
+   end
+   else begin
+      if ((has_trait(0, dude_obj, 94) == 1) or (global_var(232) > 0) or (global_var(588) > 0) or (global_var(194) >= 100)) then begin
+         if (local_var(19) == 2) then begin
+            display_msg(message_str(106, random(11003, 11012)));
+         end
+         else begin
+            display_msg(message_str(106, 11008));
+         end
+      end
+      else begin
+         if (local_var(19) == 2) then begin
+            display_msg(message_str(106, random(11001, 11005)));
+         end
+         else begin
+            display_msg(message_str(106, 11002));
+         end
+      end
+   end
+   float_msg(self_obj, message_str(106, random(11020, 11025)), 4);
+end
+
+procedure Node2503 begin
+   gfade_out(1);
+   set_global_var(794, game_time + (2 * (30 * (24 * (60 * (60 * 10))))));
+   set_local_var(19, 2);
+   game_time_advance(get_critter_stat(dude_obj, 2) * random(4, 8) * (60 * 10));
+   set_global_var(194, global_var(194) + (((((get_critter_stat(dude_obj, 3) * 50) + (get_critter_stat(dude_obj, 2) * 25) + (get_critter_stat(dude_obj, 5) * 13) + (get_critter_stat(dude_obj, 0) * 12)) / 100) + (has_trait(0, dude_obj, 94) * 2) + has_trait(2, dude_obj, 13) + (((global_var(194) >= 100) or (global_var(232) > 0)) * 2 * (dude_obj == dude_obj))) * 1));
+   if (((((get_critter_stat(dude_obj, 3) * 50) + (get_critter_stat(dude_obj, 2) * 25) + (get_critter_stat(dude_obj, 5) * 13) + (get_critter_stat(dude_obj, 0) * 12)) / 100) + (has_trait(0, dude_obj, 94) * 2) + has_trait(2, dude_obj, 13) + (((global_var(194) >= 100) or (global_var(232) > 0)) * 2 * (dude_obj == dude_obj))) >= 9) then begin
+      set_global_var(588, 1);
+   end
+   if (global_var(590) == 1) then begin
+      set_global_var(590, 0);
+   end
+   call Node999();
+end
+
+procedure Node2504 begin
+   gfade_out(1);
+   set_local_var(19, 3);
+   game_time_advance(get_critter_stat(dude_obj, 2) * random(4, 8) * (60 * 10));
+   if (get_critter_stat(dude_obj, 34) == 1) then begin
+      set_global_var(194, global_var(194) + (((((get_critter_stat(dude_obj, 3) * 50) + (get_critter_stat(dude_obj, 2) * 25) + (get_critter_stat(dude_obj, 5) * 13) + (get_critter_stat(dude_obj, 0) * 12)) / 100) + (has_trait(0, dude_obj, 94) * 2) + has_trait(2, dude_obj, 13) + (((global_var(194) >= 100) or (global_var(232) > 0)) * 2 * (dude_obj == dude_obj))) * 1));
+      if (global_var(590) == 1) then begin
+         set_global_var(590, 0);
+      end
+   end
+   call Node999();
+end
+
+procedure Node2600 begin
+   if (local_var(16) < 2) then begin
+      set_local_var(16, local_var(16) + 1);
+      gsay_reply(106, 11215);
+      giq_option(4, 106, 10022, Node100, 50);
+      giq_option(4, 106, 10024, Node999, 50);
+   end
+   else begin
+      if (global_var(795) == 0) then begin
+         set_global_var(795, random(1, 8));
+      end
+      else begin
+         if (local_var(17) < 20) then begin
+            if (global_var(0) > -500) then begin
+               gsay_reply(106, random(11210, 11214));
+               giq_option(4, 106, random(11370, 11372), Node100, 50);
+               giq_option(4, 106, random(11375, 11377), Node999, 50);
+            end
+            else begin
+               gsay_reply(106, random(11210, 11214));
+               giq_option(4, 106, random(11380, 11382), Node100, 50);
+               giq_option(4, 106, random(11385, 11387), Node999, 50);
+            end
+         end
+         else begin
+            if (global_var(795) == 1) then begin
+               if (global_var(52) <= -30) then begin
+                  if (get_critter_stat(dude_obj, 34) == 0) then begin
+                     gsay_reply(106, 11229);
+                     giq_option(4, 106, 11335, Node100, 50);
+                     giq_option(4, 106, 11336, Node999, 50);
+                  end
+                  else begin
+                     gsay_reply(106, 11349);
+                     giq_option(4, 106, 11355, Node100, 50);
+                     giq_option(4, 106, 11356, Node999, 50);
+                  end
+               end
+               else begin
+                  if (get_critter_stat(dude_obj, 34) == 0) then begin
+                     gsay_reply(106, 11220);
+                     giq_option(4, 106, 11335, Node100, 50);
+                     giq_option(4, 106, 11336, Node999, 50);
+                  end
+                  else begin
+                     gsay_reply(106, 11340);
+                     giq_option(4, 106, 11357, Node100, 50);
+                     giq_option(4, 106, 11358, Node999, 50);
+                  end
+               end
+            end
+            else begin
+               if (global_var(795) == 2) then begin
+                  if (global_var(47) <= -30) then begin
+                     if (get_critter_stat(dude_obj, 34) == 0) then begin
+                        gsay_reply(106, 11229);
+                        giq_option(4, 106, 11335, Node100, 50);
+                        giq_option(4, 106, 11336, Node999, 50);
+                     end
+                     else begin
+                        gsay_reply(106, 11349);
+                        giq_option(4, 106, 11355, Node100, 50);
+                        giq_option(4, 106, 11356, Node999, 50);
+                     end
+                  end
+                  else begin
+                     if (get_critter_stat(dude_obj, 34) == 0) then begin
+                        gsay_reply(106, 11221);
+                        giq_option(4, 106, 11355, Node100, 50);
+                        giq_option(4, 106, 11356, Node999, 50);
+                     end
+                     else begin
+                        gsay_reply(106, 11342);
+                        giq_option(4, 106, 11355, Node100, 50);
+                        giq_option(4, 106, 11356, Node999, 50);
+                     end
+                  end
+               end
+               else begin
+                  if (global_var(795) == 3) then begin
+                     if ((global_var(55) <= -30) or (metarule(17, 7) != 2)) then begin
+                        if (get_critter_stat(dude_obj, 34) == 0) then begin
+                           gsay_reply(106, 11229);
+                           giq_option(4, 106, 11335, Node100, 50);
+                           giq_option(4, 106, 11336, Node999, 50);
+                        end
+                        else begin
+                           gsay_reply(106, 11349);
+                           giq_option(4, 106, 11355, Node100, 50);
+                           giq_option(4, 106, 11356, Node999, 50);
+                        end
+                     end
+                     else begin
+                        if (get_critter_stat(dude_obj, 34) == 0) then begin
+                           gsay_reply(106, 11222);
+                           giq_option(4, 106, 11335, Node100, 50);
+                           giq_option(4, 106, 11336, Node999, 50);
+                        end
+                        else begin
+                           gsay_reply(106, 11343);
+                           giq_option(4, 106, 11355, Node100, 50);
+                           giq_option(4, 106, 11356, Node999, 50);
+                        end
+                     end
+                  end
+                  else begin
+                     if (global_var(795) == 4) then begin
+                        if ((global_var(57) <= -30) or (metarule(17, 10) != 2)) then begin
+                           if (get_critter_stat(dude_obj, 34) == 0) then begin
+                              gsay_reply(106, 11229);
+                              giq_option(4, 106, 11335, Node100, 50);
+                              giq_option(4, 106, 11336, Node999, 50);
+                           end
+                           else begin
+                              gsay_reply(106, 11349);
+                              giq_option(4, 106, 11355, Node100, 50);
+                              giq_option(4, 106, 11356, Node999, 50);
+                           end
+                        end
+                        else begin
+                           if (get_critter_stat(dude_obj, 34) == 0) then begin
+                              gsay_reply(106, 11223);
+                              giq_option(4, 106, 11335, Node100, 50);
+                              giq_option(4, 106, 11336, Node999, 50);
+                           end
+                           else begin
+                              gsay_reply(106, 11344);
+                              giq_option(4, 106, 11355, Node100, 50);
+                              giq_option(4, 106, 11356, Node999, 50);
+                           end
+                        end
+                     end
+                     else begin
+                        if (global_var(795) == 5) then begin
+                           if (metarule(17, 11) != 2) then begin
+                              if (get_critter_stat(dude_obj, 34) == 0) then begin
+                                 gsay_reply(106, 11229);
+                                 giq_option(4, 106, 11335, Node100, 50);
+                                 giq_option(4, 106, 11336, Node999, 50);
+                              end
+                              else begin
+                                 gsay_reply(106, 11349);
+                                 giq_option(4, 106, 11355, Node100, 50);
+                                 giq_option(4, 106, 11356, Node999, 50);
+                              end
+                           end
+                           else begin
+                              if ((global_var(59) <= -30) or (global_var(422) != 1)) then begin
+                                 if (get_critter_stat(dude_obj, 34) == 0) then begin
+                                    gsay_reply(106, message_str(106, 11224) + message_str(106, 11226));
+                                    giq_option(4, 106, 11335, Node100, 50);
+                                    giq_option(4, 106, 11336, Node999, 50);
+                                 end
+                                 else begin
+                                    gsay_reply(106, 11346);
+                                    giq_option(4, 106, 11355, Node100, 50);
+                                    giq_option(4, 106, 11356, Node999, 50);
+                                 end
+                              end
+                              else begin
+                                 if (get_critter_stat(dude_obj, 34) == 0) then begin
+                                    gsay_reply(106, message_str(106, 11224) + message_str(106, 11225));
+                                    giq_option(4, 106, 11335, Node100, 50);
+                                    giq_option(4, 106, 11336, Node999, 50);
+                                 end
+                                 else begin
+                                    gsay_reply(106, 11345);
+                                    giq_option(4, 106, 11355, Node100, 50);
+                                    giq_option(4, 106, 11356, Node999, 50);
+                                 end
+                              end
+                           end
+                        end
+                        else begin
+                           if (global_var(795) == 6) then begin
+                              if ((global_var(56) <= -30) or (metarule(17, 13) != 2)) then begin
+                                 if (get_critter_stat(dude_obj, 34) == 0) then begin
+                                    gsay_reply(106, 11229);
+                                    giq_option(4, 106, 11335, Node100, 50);
+                                    giq_option(4, 106, 11336, Node999, 50);
+                                 end
+                                 else begin
+                                    gsay_reply(106, 11349);
+                                    giq_option(4, 106, 11355, Node100, 50);
+                                    giq_option(4, 106, 11356, Node999, 50);
+                                 end
+                              end
+                              else begin
+                                 if (get_critter_stat(dude_obj, 34) == 0) then begin
+                                    gsay_reply(106, 11227);
+                                    giq_option(4, 106, 11335, Node100, 50);
+                                    giq_option(4, 106, 11336, Node999, 50);
+                                 end
+                                 else begin
+                                    gsay_reply(106, 11347);
+                                    giq_option(4, 106, 11357, Node100, 50);
+                                    giq_option(4, 106, 11358, Node999, 50);
+                                 end
+                              end
+                           end
+                           else begin
+                              if (global_var(795) == 7) then begin
+                                 if ((global_var(50) <= -30) or (metarule(17, 4) != 2) or (global_var(137) != 0)) then begin
+                                    if (get_critter_stat(dude_obj, 34) == 0) then begin
+                                       gsay_reply(106, 11229);
+                                       giq_option(4, 106, 11335, Node100, 50);
+                                       giq_option(4, 106, 11336, Node999, 50);
+                                    end
+                                    else begin
+                                       gsay_reply(106, 11349);
+                                       giq_option(4, 106, 11355, Node100, 50);
+                                       giq_option(4, 106, 11356, Node999, 50);
+                                    end
+                                 end
+                                 else begin
+                                    if (get_critter_stat(dude_obj, 34) == 0) then begin
+                                       gsay_reply(106, 11228);
+                                       giq_option(4, 106, 11335, Node100, 50);
+                                       giq_option(4, 106, 11336, Node999, 50);
+                                    end
+                                    else begin
+                                       gsay_reply(106, 11348);
+                                       giq_option(4, 106, 11355, Node100, 50);
+                                       giq_option(4, 106, 11356, Node999, 50);
+                                    end
+                                 end
+                              end
+                              else begin
+                                 if (get_critter_stat(dude_obj, 34) == 1) then begin
+                                    if ((global_var(49) <= -30) or (metarule(17, 1) != 0) or (global_var(728) != 3) or (global_var(14) != 0)) then begin
+                                       gsay_reply(106, 11341);
+                                       giq_option(4, 106, 11355, Node100, 50);
+                                       giq_option(4, 106, 11356, Node999, 50);
+                                    end
+                                    else begin
+                                       gsay_reply(106, 11349);
+                                       giq_option(4, 106, 11355, Node100, 50);
+                                       giq_option(4, 106, 11356, Node999, 50);
+                                    end
+                                 end
+                                 else begin
+                                    gsay_reply(106, 11330);
+                                    giq_option(4, 106, 11335, Node100, 50);
+                                    giq_option(4, 106, 11336, Node999, 50);
+                                 end
+                              end
+                           end
+                        end
+                     end
+                  end
+               end
+            end
+         end
+      end
+   end
+end
+
+procedure location_floats begin
+   if (75 >= random(1, 100)) then begin
+      if ((cur_map_index == 146) or (cur_map_index == 145) or (cur_map_index == 144) or (cur_map_index == 144) or (cur_map_index == 143) or (cur_map_index == 142) or (cur_map_index == 141) or (cur_map_index == 125) or (cur_map_index == 68)) then begin
+         float_msg(self_obj, message_str(106, random(5720, 5724)), 12);
+      end
+      else begin
+         if ((cur_map_index == 74) or (cur_map_index == 75) or (cur_map_index == 121) or (cur_map_index == 122) or (cur_map_index == 123) or (cur_map_index == 124)) then begin
+            float_msg(self_obj, message_str(106, random(5715, 5719)), 12);
+         end
+         else begin
+            if ((cur_map_index == 117) or (cur_map_index == 116) or (cur_map_index == 115) or (cur_map_index == 114) or (cur_map_index == 113) or (cur_map_index == 84) or (cur_map_index == 83) or (cur_map_index == 82) or (cur_map_index == 81) or (cur_map_index == 2) or (cur_map_index == 1) or (cur_map_index == 0)) then begin
+               float_msg(self_obj, message_str(106, random(5710, 5714)), 12);
+            end
+            else begin
+               if ((cur_map_index == 76) or (cur_map_index == 77) or (cur_map_index == 85) or (cur_map_index == 86) or (cur_map_index == 87) or (cur_map_index == 88) or (cur_map_index == 89) or (cur_map_index == 90) or (cur_map_index == 91) or (cur_map_index == 110) or (cur_map_index == 111) or (cur_map_index == 112)) then begin
+                  float_msg(self_obj, message_str(106, random(5705, 5709)), 12);
+               end
+               else begin
+                  if ((cur_map_index == 120) or (cur_map_index == 119) or (cur_map_index == 118) or (cur_map_index == 73) or (cur_map_index == 72) or (cur_map_index == 71) or (cur_map_index == 70) or (cur_map_index == 69)) then begin
+                     float_msg(self_obj, message_str(106, random(5700, 5704)), 12);
+                  end
+                  else begin
+                     if (cur_map_index == 130) then begin
+                        float_msg(self_obj, message_str(106, 5680), 12);
+                     end
+                     else begin
+                        if (cur_map_index == 132) then begin
+                           float_msg(self_obj, message_str(106, 5679), 12);
+                        end
+                        else begin
+                           if (cur_map_index == 133) then begin
+                              float_msg(self_obj, message_str(106, 5678), 12);
+                           end
+                           else begin
+                              if (cur_map_index == 134) then begin
+                                 float_msg(self_obj, message_str(106, 5677), 12);
+                              end
+                              else begin
+                                 if (cur_map_index == 131) then begin
+                                    float_msg(self_obj, message_str(106, 5676), 12);
+                                 end
+                                 else begin
+                                    if (cur_map_index == 129) then begin
+                                       float_msg(self_obj, message_str(106, random(5674, 5675)), 12);
+                                    end
+                                    else begin
+                                       if (cur_map_index == 128) then begin
+                                          float_msg(self_obj, message_str(106, random(5672, 5673)), 12);
+                                       end
+                                       else begin
+                                          if (cur_map_index == 148) then begin
+                                             float_msg(self_obj, message_str(106, random(5670, 5671)), 12);
+                                          end
+                                          else begin
+                                             if (cur_map_index == 140) then begin
+                                                float_msg(self_obj, message_str(106, random(5668, 5669)), 12);
+                                             end
+                                             else begin
+                                                if (cur_map_index == 139) then begin
+                                                   float_msg(self_obj, message_str(106, random(5666, 5667)), 12);
+                                                end
+                                                else begin
+                                                   if (cur_map_index == 138) then begin
+                                                      float_msg(self_obj, message_str(106, random(5664, 5665)), 12);
+                                                   end
+                                                   else begin
+                                                      if (cur_map_index == 137) then begin
+                                                         float_msg(self_obj, message_str(106, random(5662, 5663)), 12);
+                                                      end
+                                                      else begin
+                                                         if (cur_map_index == 136) then begin
+                                                            float_msg(self_obj, message_str(106, random(5660, 5661)), 12);
+                                                         end
+                                                         else begin
+                                                            if (cur_map_index == 135) then begin
+                                                               float_msg(self_obj, message_str(106, random(5658, 5659)), 12);
+                                                            end
+                                                            else begin
+                                                               if (cur_map_index == 109) then begin
+                                                                  float_msg(self_obj, message_str(106, random(5656, 5657)), 12);
+                                                               end
+                                                               else begin
+                                                                  if (cur_map_index == 79) then begin
+                                                                     float_msg(self_obj, message_str(106, random(5654, 5655)), 12);
+                                                                  end
+                                                                  else begin
+                                                                     if (cur_map_index == 78) then begin
+                                                                        float_msg(self_obj, message_str(106, random(5652, 5653)), 12);
+                                                                     end
+                                                                     else begin
+                                                                        if (cur_map_index == 64) then begin
+                                                                           float_msg(self_obj, message_str(106, random(5650, 5651)), 12);
+                                                                        end
+                                                                        else begin
+                                                                           if (cur_map_index == 62) then begin
+                                                                              float_msg(self_obj, message_str(106, random(5648, 5649)), 12);
+                                                                           end
+                                                                           else begin
+                                                                              if (cur_map_index == 59) then begin
+                                                                                 float_msg(self_obj, message_str(106, random(5646, 5647)), 12);
+                                                                              end
+                                                                              else begin
+                                                                                 if (cur_map_index == 57) then begin
+                                                                                    float_msg(self_obj, message_str(106, random(5644, 5645)), 12);
+                                                                                 end
+                                                                                 else begin
+                                                                                    if (cur_map_index == 56) then begin
+                                                                                       float_msg(self_obj, message_str(106, random(5642, 5643)), 12);
+                                                                                    end
+                                                                                    else begin
+                                                                                       if (cur_map_index == 55) then begin
+                                                                                          float_msg(self_obj, message_str(106, random(5640, 5641)), 12);
+                                                                                       end
+                                                                                       else begin
+                                                                                          if (cur_map_index == 54) then begin
+                                                                                             float_msg(self_obj, message_str(106, random(5638, 5639)), 12);
+                                                                                          end
+                                                                                          else begin
+                                                                                             if (cur_map_index == 51) then begin
+                                                                                                float_msg(self_obj, message_str(106, random(5636, 5637)), 12);
+                                                                                             end
+                                                                                             else begin
+                                                                                                if (cur_map_index == 46) then begin
+                                                                                                   float_msg(self_obj, message_str(106, random(5634, 5635)), 12);
+                                                                                                end
+                                                                                                else begin
+                                                                                                   if (cur_map_index == 43) then begin
+                                                                                                      float_msg(self_obj, message_str(106, random(5632, 5633)), 12);
+                                                                                                   end
+                                                                                                   else begin
+                                                                                                      if (cur_map_index == 42) then begin
+                                                                                                         float_msg(self_obj, message_str(106, random(5630, 5631)), 12);
+                                                                                                      end
+                                                                                                      else begin
+                                                                                                         if (cur_map_index == 40) then begin
+                                                                                                            float_msg(self_obj, message_str(106, random(5628, 5629)), 12);
+                                                                                                         end
+                                                                                                         else begin
+                                                                                                            if (cur_map_index == 36) then begin
+                                                                                                               float_msg(self_obj, message_str(106, random(5626, 5627)), 12);
+                                                                                                            end
+                                                                                                            else begin
+                                                                                                               if (cur_map_index == 34) then begin
+                                                                                                                  float_msg(self_obj, message_str(106, random(5624, 5625)), 12);
+                                                                                                               end
+                                                                                                               else begin
+                                                                                                                  if (cur_map_index == 31) then begin
+                                                                                                                     float_msg(self_obj, message_str(106, random(5622, 5623)), 12);
+                                                                                                                  end
+                                                                                                                  else begin
+                                                                                                                     if (cur_map_index == 32) then begin
+                                                                                                                        float_msg(self_obj, message_str(106, random(5681, 5682)), 12);
+                                                                                                                     end
+                                                                                                                     else begin
+                                                                                                                        if (cur_map_index == 27) then begin
+                                                                                                                           float_msg(self_obj, message_str(106, random(5620, 5621)), 12);
+                                                                                                                        end
+                                                                                                                        else begin
+                                                                                                                           if (cur_map_index == 24) then begin
+                                                                                                                              float_msg(self_obj, message_str(106, random(5618, 5619)), 12);
+                                                                                                                           end
+                                                                                                                           else begin
+                                                                                                                              if (cur_map_index == 22) then begin
+                                                                                                                                 float_msg(self_obj, message_str(106, random(5616, 5617)), 12);
+                                                                                                                              end
+                                                                                                                              else begin
+                                                                                                                                 if (cur_map_index == 19) then begin
+                                                                                                                                    float_msg(self_obj, message_str(106, random(5614, 5615)), 12);
+                                                                                                                                 end
+                                                                                                                                 else begin
+                                                                                                                                    if (cur_map_index == 18) then begin
+                                                                                                                                       float_msg(self_obj, message_str(106, random(5612, 5613)), 12);
+                                                                                                                                    end
+                                                                                                                                    else begin
+                                                                                                                                       if (cur_map_index == 30) then begin
+                                                                                                                                          float_msg(self_obj, message_str(106, random(5610, 5611)), 12);
+                                                                                                                                       end
+                                                                                                                                       else begin
+                                                                                                                                          if (cur_map_index == 16) then begin
+                                                                                                                                             float_msg(self_obj, message_str(106, random(5608, 5609)), 12);
+                                                                                                                                          end
+                                                                                                                                          else begin
+                                                                                                                                             if (cur_map_index == 17) then begin
+                                                                                                                                                float_msg(self_obj, message_str(106, random(5606, 5607)), 12);
+                                                                                                                                             end
+                                                                                                                                             else begin
+                                                                                                                                                if (cur_map_index == 15) then begin
+                                                                                                                                                   float_msg(self_obj, message_str(106, random(5604, 5605)), 12);
+                                                                                                                                                end
+                                                                                                                                                else begin
+                                                                                                                                                   if (cur_map_index == 9) then begin
+                                                                                                                                                      float_msg(self_obj, message_str(106, random(5602, 5603)), 12);
+                                                                                                                                                   end
+                                                                                                                                                   else begin
+                                                                                                                                                      if (cur_map_index == 6) then begin
+                                                                                                                                                         float_msg(self_obj, message_str(106, random(5600, 5601)), 12);
+                                                                                                                                                      end
+                                                                                                                                                      else begin
+                                                                                                                                                         if (cur_map_index == 107) then begin
+                                                                                                                                                            float_msg(self_obj, message_str(106, 5683), 12);
+                                                                                                                                                         end
+                                                                                                                                                         else begin
+                                                                                                                                                            if (cur_map_index == 96) then begin
+                                                                                                                                                               float_msg(self_obj, message_str(106, 5684), 12);
+                                                                                                                                                            end
+                                                                                                                                                            else begin
+                                                                                                                                                               if (cur_map_index == 48) then begin
+                                                                                                                                                                  float_msg(self_obj, message_str(106, 5685), 12);
+                                                                                                                                                               end
+                                                                                                                                                               else begin
+                                                                                                                                                                  if (cur_map_index == 26) then begin
+                                                                                                                                                                     float_msg(self_obj, message_str(106, random(5686, 5687)), 12);
+                                                                                                                                                                  end
+                                                                                                                                                                  else begin
+                                                                                                                                                                     if (cur_map_index == 23) then begin
+                                                                                                                                                                        float_msg(self_obj, message_str(106, random(5688, 5689)), 12);
+                                                                                                                                                                     end
+                                                                                                                                                                     else begin
+                                                                                                                                                                        if (cur_map_index == 127) then begin
+                                                                                                                                                                           float_msg(self_obj, message_str(106, random(5690, 5691)), 12);
+                                                                                                                                                                        end
+                                                                                                                                                                        else begin
+                                                                                                                                                                           if (cur_map_index == 10) then begin
+                                                                                                                                                                              float_msg(self_obj, message_str(106, random(5692, 5693)), 12);
+                                                                                                                                                                           end
+                                                                                                                                                                           else begin
+                                                                                                                                                                              if (cur_map_index == 5) then begin
+                                                                                                                                                                                 float_msg(self_obj, message_str(106, random(5694, 5695)), 12);
+                                                                                                                                                                              end
+                                                                                                                                                                              else begin
+                                                                                                                                                                                 if (cur_map_index == 4) then begin
+                                                                                                                                                                                    float_msg(self_obj, message_str(106, random(5696, 5697)), 12);
+                                                                                                                                                                                 end
+                                                                                                                                                                                 else begin
+                                                                                                                                                                                    if (cur_map_index == 157) then begin
+                                                                                                                                                                                       float_msg(self_obj, message_str(106, random(5698, 5699)), 12);
+                                                                                                                                                                                    end
+                                                                                                                                                                                    else begin
+                                                                                                                                                                                       if (cur_map_index == 158) then begin
+                                                                                                                                                                                          float_msg(self_obj, message_str(106, random(5800, 5801)), 12);
+                                                                                                                                                                                       end
+                                                                                                                                                                                       else begin
+                                                                                                                                                                                          if (cur_map_index == 156) then begin
+                                                                                                                                                                                             float_msg(self_obj, message_str(106, random(5802, 5803)), 12);
+                                                                                                                                                                                          end
+                                                                                                                                                                                          else begin
+                                                                                                                                                                                             if (cur_map_index == 155) then begin
+                                                                                                                                                                                                float_msg(self_obj, message_str(106, random(5804, 5805)), 12);
+                                                                                                                                                                                             end
+                                                                                                                                                                                             else begin
+                                                                                                                                                                                                if (cur_map_index == 152) then begin
+                                                                                                                                                                                                   float_msg(self_obj, message_str(106, random(5806, 5807)), 12);
+                                                                                                                                                                                                end
+                                                                                                                                                                                                else begin
+                                                                                                                                                                                                   if (cur_map_index == 151) then begin
+                                                                                                                                                                                                      float_msg(self_obj, message_str(106, random(5808, 5809)), 12);
+                                                                                                                                                                                                   end
+                                                                                                                                                                                                end
+                                                                                                                                                                                             end
+                                                                                                                                                                                          end
+                                                                                                                                                                                       end
+                                                                                                                                                                                    end
+                                                                                                                                                                                 end
+                                                                                                                                                                              end
+                                                                                                                                                                           end
+                                                                                                                                                                        end
+                                                                                                                                                                     end
+                                                                                                                                                                  end
+                                                                                                                                                               end
+                                                                                                                                                            end
+                                                                                                                                                         end
+                                                                                                                                                      end
+                                                                                                                                                   end
+                                                                                                                                                end
+                                                                                                                                             end
+                                                                                                                                          end
+                                                                                                                                       end
+                                                                                                                                    end
+                                                                                                                                 end
+                                                                                                                              end
+                                                                                                                           end
+                                                                                                                        end
+                                                                                                                     end
+                                                                                                                  end
+                                                                                                               end
+                                                                                                            end
+                                                                                                         end
+                                                                                                      end
+                                                                                                   end
+                                                                                                end
+                                                                                             end
+                                                                                          end
+                                                                                       end
+                                                                                    end
+                                                                                 end
+                                                                              end
+                                                                           end
+                                                                        end
+                                                                     end
+                                                                  end
+                                                               end
+                                                            end
+                                                         end
+                                                      end
+                                                   end
+                                                end
+                                             end
+                                          end
+                                       end
+                                    end
+                                 end
+                              end
+                           end
+                        end
+                     end
+                  end
+               end
+            end
+         end
+      end
+   end
+end
+

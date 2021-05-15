@@ -1,11 +1,11 @@
-{100}{}{You see a dirty, unshaven man.}
-{200}{}{You see a dirty, haggard woman.}
+{100}{}{You see a filthy, haggard man.}
+{200}{}{You see a dirty, disheveled woman.}
 {101}{}{Trapper.}
-{102}{}{Best not get too close. Some of the critters in his clothes might be looking for a cleaner
+{102}{}{Best not get too close. Some of the critters in the trapper's clothes might be looking for a cleaner
  home.}
 {103}{}{Howdy. Don't come across people too often out here in trapper country. Whatcha want?}
 {104}{}{Do you have any gecko pelts for sale?}
-{105}{}{Just passing through.}
+{105}{}{I'm just passing through.}
 {106}{}{Ug.}
 {107}{}{Well, I reckon I might be able to sell ya my pelts. It'll save me the trouble of going into
  town.}
@@ -35,7 +35,7 @@
  trespass on your land. Leave peacefully. [He hands you a gecko pelt as a gift.]}
 {128}{}{[END]}
 {129}{}{I've got no more business with you.}
-{130}{}{Yellow bellied sapsucker!}
+{130}{}{You yellow bellied sapsucker!}
 {131}{}{This is my hunting territory. Leave!}
 {132}{}{I'll skin you alive!}
 {133}{}{I'm gonna use your head as a trophy.}

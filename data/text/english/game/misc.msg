@@ -140,8 +140,8 @@
 {9090}{}{I learned some new things!} # pMDavin_PID
 {9091}{}{I learned some new things!}
 
-{9100}{}{I learned some new things!} # pMMaria_PID
-{9101}{}{I learned some new things!}
+{9100}{}{Just one more reason to love me!} # pMMaria_PID
+{9101}{}{And to think that poppa said I'd never amount to anything!}
 
 {9110}{}{I learned some new things!} # pMLaddie_PID
 {9111}{}{I learned some new things!}

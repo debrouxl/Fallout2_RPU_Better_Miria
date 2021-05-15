@@ -206,6 +206,14 @@ packet_num=42
 run_end=19
 start_block=41700
 
+[Miria]
+attack_end=57
+missed_end=73
+move_end=32
+packet_num=51
+run_end=15
+start_block=42900
+
 [Myron]
 attack_end=59
 missed_end=77

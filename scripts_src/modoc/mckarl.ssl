@@ -576,7 +576,7 @@ procedure Node044 begin
 end
 procedure Node045 begin
    variable karl_money;
-   up_sex_status; //added by killap
+   up_sex_status //added by killap
    game_time_advance(have_quickie_time_obj(dude_obj));
    karl_money := self_caps;
    if (karl_money > 0) then begin
